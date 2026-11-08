@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>KeyFlow · iOS 磨砂键盘输入法</title>
+<style>
+/* ============ KeyFlow · iOS 深色磨砂键盘（按参考图按键设计重做） ============ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  background: radial-gradient(1000px 700px at 12% 8%, #23243d 0%, transparent 60%),
+              radial-gradient(900px 700px at 88% 92%, #2c2036 0%, transparent 60%), #0a0b11;
+  color: #f2f2f7; overflow: hidden;
+}
+.page { height: 100%; display: flex; align-items: center; justify-content: center; gap: 54px; padding: 20px; }
+
+/* ---------- 左侧说明 ---------- */
+.showcase { width: 344px; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 13px; }
+.brand-logo { width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center; font-size: 25px; font-weight: 700; color: #fff;
+  background: linear-gradient(145deg, #6d7c93, #3a465c); box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.28); }
+.brand h1 { font-size: 25px; margin: 0; letter-spacing: -.4px; }
+.brand p { margin: 3px 0 0; font-size: 11px; color: #8e97ad; letter-spacing: 1.8px; text-transform: uppercase; }
+.tagline { margin: 20px 0 20px; font-size: 13px; line-height: 1.8; color: #aab2c6; }
+.tagline b { color: #fff; font-weight: 600; }
+.feat-list { display: grid; gap: 8px; }
+.feat { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 13px; width: 100%; text-align: left;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); color: inherit; font: inherit; cursor: pointer; transition: .18s; }
+.feat:hover { background: rgba(255,255,255,.12); transform: translateX(4px); border-color: rgba(150,180,255,.32); }
+.feat-ic { width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #cfd8ee; }
+.feat-ic .ic { width: 18px; height: 18px; }
+.feat-tx { min-width: 0; }
+.feat-tx strong { display: block; font-size: 13px; font-weight: 600; }
+.feat-tx span { display: block; font-size: 11px; color: #858ea5; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feat-arrow { margin-left: auto; color: #5c647c; font-size: 16px; }
+.foot-hint { margin-top: 18px; font-size: 11px; line-height: 1.8; color: #6b7390; }
+.foot-hint kbd { background: rgba(255,255,255,.1); border-radius: 4px; padding: 1px 5px; }
+
+/* ---------- 设备 ---------- */
+.device-wrap { flex-shrink: 0; position: relative; }
+.device { position: absolute; top: 0; left: 0; width: 414px; height: 896px; padding: 10px; border-radius: 50px;
+  background: linear-gradient(145deg, #50535b, #17181d 35%, #0c0d11 70%, #3c3f47);
+  box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1), inset 0 0 0 1px rgba(0,0,0,.6); }
+.device::before, .device::after { content: ""; position: absolute; left: -3px; width: 3px; border-radius: 3px 0 0 3px; background: #34373e; }
+.device::before { top: 132px; height: 32px; } .device::after { top: 190px; height: 64px; }
+.side-btn { position: absolute; right: -3px; width: 3px; height: 90px; top: 200px; border-radius: 0 3px 3px 0; background: #34373e; }
+
+.screen {
+  width: 100%; height: 100%; border-radius: 41px; overflow: hidden; position: relative;
+  display: flex; flex-direction: column; color: var(--ink);
+  --kb-bg: rgba(24,22,23,.40); --key-bg: rgba(255,255,255,.27); --key-fn: rgba(255,255,255,.15);
+  --key-return: rgba(255,255,255,.17); --key-shadow: rgba(0,0,0,.34);
+  --ink: #f7f7f9; --sub: rgba(235,235,245,.55); --bar: rgba(38,36,39,.78);
+  --sep: rgba(255,255,255,.12); --accent: #0a84ff; --panel: rgba(255,255,255,.10);
+  --card: rgba(255,255,255,.08); --app-bg: rgba(16,16,20,.34); --kb-h: 226px;
+}
+.screen.light {
+  --kb-bg: rgba(214,216,222,.80); --key-bg: rgba(255,255,255,.95); --key-fn: rgba(172,177,188,.9);
+  --key-return: rgba(182,186,195,.9); --key-shadow: rgba(0,0,0,.18);
+  --ink: #1c1c1e; --sub: #7c7c82; --bar: rgba(240,240,244,.92);
+  --sep: rgba(60,60,67,.16); --accent: #007aff; --panel: #fff;
+  --card: #e9e9ee; --app-bg: rgba(255,255,255,.82);
+}
+/* 模糊渐变壁纸：让磨砂键盘有可透的底色（不复制截图上半部分内容） */
+.wallpaper { position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(85% 45% at 12% 12%, rgba(92,62,108,.78), transparent 65%),
+    radial-gradient(70% 40% at 92% 26%, rgba(38,96,92,.62), transparent 65%),
+    radial-gradient(90% 48% at 22% 62%, rgba(128,74,48,.60), transparent 68%),
+    radial-gradient(80% 45% at 88% 88%, rgba(44,74,96,.55), transparent 68%),
+    linear-gradient(165deg, #1b1822 0%, #171c20 42%, #2a1d1a 100%);
+}
+.wallpaper::after { content: ""; position: absolute; inset: -10%; background: radial-gradient(60% 40% at 55% 50%, rgba(150,105,70,.28), transparent 70%); filter: blur(40px); }
+.notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; border-radius: 0 0 20px 20px; background: #000; z-index: 60; }
+
+/* 状态栏 */
+.statusbar { height: 46px; flex-shrink: 0; position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 0 27px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.status-time { width: 60px; }
+.status-icons { display: flex; align-items: center; gap: 6px; }
+.status-icons svg { height: 12px; width: auto; fill: var(--ink); color: var(--ink); }
+.status-icons .bat { fill: #32d74b; }
+
+/* ---------- 文稿区 ---------- */
+.appview { flex: 1; min-height: 0; position: relative; z-index: 2; display: flex; flex-direction: column; background: var(--app-bg); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--ink); }
+.navbar { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--sep); }
+.nav-btn { color: var(--accent); font-size: 15px; background: none; border: 0; padding: 6px 2px; cursor: pointer; font-family: inherit; }
+.nav-title { font-size: 15px; font-weight: 600; }
+.doc-meta { text-align: center; font-size: 11px; color: var(--sub); padding: 12px 0 4px; }
+.editor-wrap { flex: 1; min-height: 0; padding: 4px 22px 10px; display: flex; }
+#editor { flex: 1; width: 100%; resize: none; border: 0; outline: none; background: transparent; color: var(--ink);
+  font-family: inherit; font-size: 17px; line-height: 1.75; padding: 0; caret-color: var(--accent); }
+#editor::placeholder { color: var(--sub); opacity: .8; }
+.app-foot { height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 11px; color: var(--sub); border-top: 1px solid var(--sep); }
+.app-foot .ic { width: 15px; height: 15px; cursor: pointer; }
+
+/* ---------- 输入法容器（磨砂玻璃） ---------- */
+.ime { flex-shrink: 0; position: relative; z-index: 3; display: flex; flex-direction: column; color: var(--ink);
+  background: var(--kb-bg); -webkit-backdrop-filter: blur(26px) saturate(150%); backdrop-filter: blur(26px) saturate(150%);
+  border-top: 1px solid rgba(255,255,255,.07); }
+.grip { height: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: ns-resize; touch-action: none; }
+.grip-bar { width: 40px; height: 4px; border-radius: 3px; background: var(--sub); opacity: .5; }
+.grip:hover .grip-bar { opacity: .9; }
+
+/* 边写边译条 */
+.translate-bar { display: none; align-items: center; gap: 8px; padding: 7px 10px; flex-shrink: 0; background: rgba(10,132,255,.14); border-bottom: 1px solid var(--sep); }
+.translate-bar.on { display: flex; }
+.tr-badge { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 3px 6px; border-radius: 5px; white-space: nowrap; }
+.tr-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.35; max-height: 34px; overflow: hidden; }
+.tr-acts { display: flex; gap: 5px; }
+.tr-acts button { border: 0; background: rgba(255,255,255,.14); color: var(--accent); font-size: 11px; padding: 5px 7px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+
+/* 候选词栏：默认隐藏，输入拼音 / 收起键盘时出现 */
+.candidate-bar { display: none; height: 44px; flex-shrink: 0; align-items: stretch; border-bottom: 1px solid var(--sep); }
+.candidate-bar.on { display: flex; }
+.pinyin-box { min-width: 58px; max-width: 100px; padding: 0 8px 0 12px; display: flex; align-items: center; font-size: 14px; color: #7db8ff; letter-spacing: .3px; border-right: 1px solid var(--sep); overflow: hidden; white-space: nowrap; }
+.pinyin-box:empty { display: none; }
+.cand-scroll { flex: 1; min-width: 0; display: flex; align-items: stretch; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.cand-scroll::-webkit-scrollbar { display: none; }
+.cand { position: relative; flex-shrink: 0; display: flex; align-items: center; padding: 0 15px; font-size: 18px; cursor: pointer; white-space: nowrap; }
+.cand::after { content: ""; position: absolute; right: 0; top: 11px; bottom: 11px; width: 1px; background: var(--sep); }
+.cand:last-child::after { display: none; }
+.cand:active { background: rgba(255,255,255,.12); }
+.cand.first { color: #8fc0ff; font-weight: 600; }
+.cand-empty { display: flex; align-items: center; padding-left: 14px; font-size: 12px; color: var(--sub); }
+.cand-collapse { flex-shrink: 0; width: 42px; display: grid; place-items: center; border-left: 1px solid var(--sep); cursor: pointer; color: var(--sub); }
+.cand-collapse .ic { width: 18px; height: 18px; }
+
+.collapse-tip { display: none; height: 26px; flex-shrink: 0; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--sub); }
+.ime.collapsed .collapse-tip { display: flex; }
+.collapse-tip button { border: 0; background: none; color: #8fc0ff; font-size: 11px; font-family: inherit; cursor: pointer; font-weight: 600; }
+
+/* ---------- 键盘主体 ---------- */
+.keyboard-body { height: var(--kb-h); flex-shrink: 0; position: relative; overflow: hidden; transition: height .22s cubic-bezier(.32,.72,0,1); }
+.kview { position: absolute; inset: 0; display: none; flex-direction: column; padding: 8px 4px 4px; }
+.kview.show { display: flex; }
+.krow { display: flex; gap: 6px; margin: 0 0 11px; flex: 1; min-height: 0; }
+.krow:last-child { margin-bottom: 0; }
+.key { flex: 1; min-width: 0; border: 0; border-radius: 8px; background: var(--key-bg); color: var(--ink);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 var(--key-shadow); font-family: inherit; font-size: 24px; font-weight: 400;
+  display: grid; place-items: center; cursor: pointer; user-select: none; position: relative;
+  transition: transform .06s, background .09s; }
+.key:active, .key.pressed { background: rgba(255,255,255,.46); transform: scale(.955); }
+.screen.light .key:active, .screen.light .key.pressed { background: #e2e4e9; }
+.key.fn { background: var(--key-fn); font-size: 14px; }
+.key.fn .ic { width: 23px; height: 23px; }
+.key.fn:active, .key.fn.pressed { background: rgba(255,255,255,.42); }
+.key.wide { flex: 1.45; }
+.key.return { flex: 2; background: var(--key-return); font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.key.return .ic { width: 15px; height: 15px; }
+.key.space { flex: 4.4; font-size: 15px; }
+.key.k2 { font-size: 15px; }
+.key.special { font-size: 19px; }
+.key .lbl { font-size: 15px; }
+.key.shift-on { background: rgba(255,255,255,.75); color: #1c1c1e; }
+.screen.light .key.shift-on { background: #fff; color: #1c1c1e; }
+.key-row3 { padding: 0 1px; }
+
+/* 底部地球 / 麦克风行（参考图） */
+.bottom-row { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+.bottom-row button { border: 0; background: none; color: var(--ink); opacity: .92; cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center; }
+.bottom-row button:active { background: rgba(255,255,255,.12); }
+.bottom-row .ic { width: 25px; height: 25px; }
+.bottom-row .mic-listening { color: #ff453a; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .4; } }
+.home-bar { height: 14px; flex-shrink: 0; display: grid; place-items: center; }
+.home-bar i { width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; }
+
+.ime.collapsed .keyboard-body { height: 0 !important; }
+.ime.collapsed .grip { display: none; }
+.ime.collapsed .bottom-row { display: none; }
+
+/* ---------- 功能菜单（由地球键唤出） ---------- */
+.func-mask { position: absolute; inset: 0; z-index: 70; background: rgba(0,0,0,.38); display: none; }
+.func-mask.show { display: block; }
+.func-menu { position: absolute; left: 12px; right: 12px; bottom: 66px; z-index: 71; padding: 14px 12px 12px;
+  border-radius: 20px; background: rgba(48,47,52,.92); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 20px 50px rgba(0,0,0,.5); color: #fff; display: none; }
+.screen.light .func-menu { background: rgba(246,246,250,.94); color: #1c1c1e; border-color: rgba(0,0,0,.08); }
+.func-menu.show { display: block; }
+.func-menu h4 { margin: 0 0 12px 4px; font-size: 12px; font-weight: 600; opacity: .6; }
+.func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.func-item { border: 0; background: rgba(255,255,255,.09); color: inherit; border-radius: 12px; padding: 10px 2px 8px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: inherit; font-size: 10.5px; }
+.screen.light .func-item { background: rgba(0,0,0,.05); }
+.func-item:active { background: rgba(255,255,255,.2); }
+.func-item .ic { width: 21px; height: 21px; }
+.func-item.on { background: rgba(10,132,255,.3); color: #9dc9ff; }
+.func-hint { margin: 11px 4px 0; font-size: 10.5px; line-height: 1.5; opacity: .55; }
+
+/* ---------- 面板：剪贴板 / 手写 / 表情 ---------- */
+.panel { position: absolute; left: 0; right: 0; top: 12px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
+/* 面板模式自动加高键盘区，给手写画布 / 剪贴板列表更多空间（不改动用户设置的高度） */
+.ime.panel-mode .keyboard-body { height: 292px !important; }
+.panel.show { display: flex; }
+.panel.panel-inline { position: relative; inset: auto; top: auto; right: auto; bottom: auto; left: auto; z-index: auto; flex: 1; min-height: 0; background: transparent; }
+.panel-head { height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--sep); }
+.panel-head strong { font-size: 13px; }
+.panel-head .acts { display: flex; gap: 8px; }
+.panel-head button { border: 0; background: none; color: var(--accent); font-size: 12px; font-family: inherit; cursor: pointer; padding: 4px; }
+.panel-tabs { height: 38px; flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 0 6px; border-bottom: 1px solid var(--sep); }
+.panel-tabs button { flex: 1; min-width: 0; border: 0; background: none; color: var(--sub); font-size: 9.5px; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 7px; padding: 3px 0; cursor: pointer; }
+.panel-tabs button .ic { width: 16px; height: 16px; }
+.panel-tabs button.active { color: var(--accent); background: rgba(10,132,255,.16); }
+.panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 10px; }
+
+.clip-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 11px; border-radius: 10px; background: var(--panel); margin-bottom: 8px; cursor: pointer; }
+.clip-item:active { background: rgba(255,255,255,.18); }
+.clip-item .ic { width: 17px; height: 17px; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.clip-tx { flex: 1; min-width: 0; font-size: 13px; line-height: 1.45; word-break: break-all; }
+.clip-time { font-size: 10px; color: var(--sub); margin-top: 3px; }
+.clip-del { border: 0; background: none; cursor: pointer; padding: 2px; }
+.clip-del .ic { width: 14px; height: 14px; color: var(--sub); }
+.clip-empty { text-align: center; color: var(--sub); font-size: 12px; padding: 40px 0; }
+.clip-add { display: flex; gap: 8px; margin-bottom: 10px; }
+.clip-add input { flex: 1; min-width: 0; border: 1px solid var(--sep); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 8px 10px; font-size: 12px; font-family: inherit; outline: none; }
+.clip-add button { border: 0; background: var(--accent); color: #fff; border-radius: 8px; padding: 0 12px; font-size: 12px; font-family: inherit; cursor: pointer; }
+
+.hw-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 8px 10px 6px; }
+.hw-canvas-box { flex: 1; min-height: 0; width: 100%; max-width: 262px; align-self: center; position: relative; border-radius: 12px; background: var(--panel); overflow: hidden; border: 1px solid var(--sep); }
+#hwCanvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.hw-placeholder { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: var(--sub); opacity: .28; font-size: 58px; font-weight: 300; }
+.hw-tools { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-shrink: 0; }
+.hw-btn { border: 0; background: var(--panel); color: var(--ink); border-radius: 8px; padding: 8px 10px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.hw-btn.primary { background: var(--accent); color: #fff; flex: 1; font-weight: 600; }
+.hw-result { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; flex-shrink: 0; scrollbar-width: none; min-height: 46px; }
+.hw-char { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; background: var(--panel); border: 1px solid var(--sep); font-size: 22px; display: grid; place-items: center; cursor: pointer; }
+.hw-char:active { background: var(--accent); color: #fff; }
+.hw-hint { font-size: 10.5px; color: var(--sub); text-align: center; padding-bottom: 2px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.emoji-grid button { border: 0; background: none; font-size: 25px; padding: 5px 0; cursor: pointer; border-radius: 6px; }
+.emoji-grid button:active { background: rgba(255,255,255,.14); }
+
+/* ---------- 设置面板 ---------- */
+.sheet-mask { position: absolute; inset: 0; z-index: 80; background: rgba(0,0,0,.45); display: none; }
+.sheet-mask.show { display: block; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 81; max-height: 88%; background: var(--bar);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 20px 20px 0 0; color: var(--ink);
+  transform: translateY(100%); transition: transform .28s cubic-bezier(.32,.72,0,1); display: flex; flex-direction: column; }
+.sheet.show { transform: translateY(0); }
+.sheet-head { height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid var(--sep); }
+.sheet-head strong { font-size: 16px; }
+.sheet-head button { border: 0; background: rgba(10,132,255,.2); color: #8fc0ff; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 14px; cursor: pointer; font-family: inherit; }
+.screen.light .sheet-head button { color: var(--accent); }
+.sheet-scroll { overflow-y: auto; padding: 14px 14px 26px; }
+.group { background: var(--panel); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.group-title { font-size: 11px; text-transform: uppercase; color: var(--sub); padding: 0 4px 7px; letter-spacing: .4px; }
+.row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 1px solid var(--sep); min-height: 46px; }
+.row:last-child { border-bottom: 0; }
+.row-ic { width: 27px; height: 27px; border-radius: 7px; display: grid; place-items: center; color: #fff; flex-shrink: 0; background: var(--accent); }
+.row-ic .ic { width: 16px; height: 16px; }
+.row-main { flex: 1; min-width: 0; }
+.row-main strong { display: block; font-size: 13.5px; font-weight: 500; }
+.row-main span { display: block; font-size: 11px; color: var(--sub); margin-top: 2px; line-height: 1.4; }
+.switch { width: 49px; height: 29px; border-radius: 20px; background: rgba(120,120,128,.4); border: 0; padding: 2px; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+.switch i { display: block; width: 25px; height: 25px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.switch.on { background: #34c759; } .switch.on i { transform: translateX(20px); }
+.range-row { padding: 8px 13px 14px; }
+.range-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); margin-bottom: 8px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.seg { display: flex; background: rgba(120,120,128,.2); border-radius: 8px; padding: 2px; }
+.seg button { flex: 1; border: 0; background: none; color: var(--ink); font-size: 11.5px; padding: 6px 4px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.seg button.on { background: var(--panel); box-shadow: 0 1px 3px rgba(0,0,0,.16); font-weight: 600; }
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 13px 13px; }
+.stat { background: var(--card); border-radius: 9px; padding: 9px 6px; text-align: center; }
+.stat b { display: block; font-size: 17px; color: #8fc0ff; } .stat span { font-size: 10px; color: var(--sub); }
+.screen.light .stat b { color: var(--accent); }
+.wb-area { width: 100%; height: 62px; border: 1px solid var(--sep); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 8px; font-size: 11px; font-family: inherit; resize: none; outline: none; }
+.wb-btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.wb-btns button, .file-label { border: 0; background: var(--accent); color: #fff; font-size: 12px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+.wb-btns button.ghost { background: rgba(120,120,128,.24); color: var(--ink); }
+.file-label .ic { width: 14px; height: 14px; }
+.wb-preview { font-size: 11px; color: var(--sub); line-height: 1.6; margin-top: 8px; word-break: break-all; }
+#wbFile { display: none; }
+
+.toast { position: absolute; left: 50%; bottom: 25%; transform: translate(-50%, 10px); z-index: 120; background: rgba(28,28,30,.92); color: #fff;
+  font-size: 12.5px; padding: 10px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: .25s; white-space: nowrap; max-width: 86%; overflow: hidden; text-overflow: ellipsis; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hidden { display: none !important; }
+@media (max-width: 1120px) { .showcase { display: none; } .page { gap: 0; } }
+
+/* ---------- 真机 App 沉浸模式（由 iOS 壳注入 window.KeyFlowNative 开启） ---------- */
+body.native .page { padding: 0; gap: 0; }
+body.native .showcase { display: none; }
+body.native .device-wrap { width: 100vw !important; height: 100vh !important; }
+body.native .device { position: relative !important; top: auto !important; left: auto !important;
+  width: 100% !important; height: 100% !important; padding: 0 !important; border-radius: 0 !important;
+  box-shadow: none !important; background: transparent !important; transform: none !important; }
+body.native .device::before, body.native .device::after, body.native .side-btn { display: none; }
+body.native .screen { border-radius: 0 !important; }
+body.native .notch, body.native .statusbar, body.native .home-bar { display: none; }
+body.native .appview { padding-top: env(safe-area-inset-top); }
+body.native .ime { padding-bottom: env(safe-area-inset-bottom); }
+body.native .wallpaper { border-radius: 0; }
+
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="ic-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M9 9h6M9 13h6M9 17h4"/></symbol>
+  <symbol id="ic-pen" viewBox="0 0 24 24"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14.5 6.5l3 3"/></symbol>
+  <symbol id="ic-translate" viewBox="0 0 24 24"><path d="M3 5h9M7.5 3v2M9.5 5c0 4-2.5 7-6.5 8M6 9c1 2.5 3 4.5 5.5 5.5"/><path d="M13 20l4-10 4 10M14.4 17h5.2"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="ic-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></symbol>
+  <symbol id="ic-keyboard-down" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="10" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 12h8M12 17v4M9 19l3 3 3-3"/></symbol>
+  <symbol id="ic-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></symbol>
+  <symbol id="ic-delete" viewBox="0 0 24 24"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9L2 12l7-7z"/><path d="M12 9l6 6M18 9l-6 6"/></symbol>
+  <symbol id="ic-shift" viewBox="0 0 24 24"><path d="M12 3l8 8h-4v7H8v-7H4l8-8z"/></symbol>
+  <symbol id="ic-emoji" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></symbol>
+  <symbol id="ic-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22V4.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/></symbol>
+  <symbol id="ic-wave" viewBox="0 0 24 24"><path d="M3 12h2l2-5 3 10 3-13 3 16 2-8h3"/></symbol>
+  <symbol id="ic-height" viewBox="0 0 24 24"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/><path d="M4 12h16"/></symbol>
+  <symbol id="ic-import" viewBox="0 0 24 24"><path d="M12 3v11M8 10l4 4 4-4M4 17v3h16v-3"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3z"/></symbol>
+  <symbol id="ic-return" viewBox="0 0 24 24"><path d="M20 5v7a4 4 0 0 1-4 4H5"/><path d="M9 12l-4 4 4 4"/></symbol>
+  <symbol id="ic-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+  <symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
+  <symbol id="ic-lang" viewBox="0 0 24 24"><path d="M3 6h10M8 3v3M10 6c0 4-3 7-7 8M6 10c1 2 3 4 5 5"/><path d="M13 20l4-10 4 10M14.5 17h5"/></symbol>
+</defs></svg>
+
+<div class="page">
+  <aside class="showcase">
+    <div class="brand"><div class="brand-logo">K</div><div><h1>KeyFlow 输入法</h1><p>iOS Frosted Keyboard</p></div></div>
+    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距、底部地球 / 麦克风。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
+    <div class="feat-list" id="featList">
+      <button class="feat" data-act="clipboard"><span class="feat-ic"><svg class="ic"><use href="#ic-clipboard"/></svg></span><span class="feat-tx"><strong>剪贴板</strong><span>历史条目、一键粘贴、复制与清空</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="collapse"><span class="feat-ic"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span><span class="feat-tx"><strong>收起键盘预选词</strong><span>键盘收起后候选词仍可点选上屏</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="translate"><span class="feat-ic"><svg class="ic"><use href="#ic-translate"/></svg></span><span class="feat-tx"><strong>边写边译</strong><span>输入同时实时翻译，可替换或插入</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="handwrite"><span class="feat-ic"><svg class="ic"><use href="#ic-pen"/></svg></span><span class="feat-tx"><strong>手写找字</strong><span>手写笔迹识别，快速找到生僻字</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="height"><span class="feat-ic"><svg class="ic"><use href="#ic-height"/></svg></span><span class="feat-tx"><strong>键盘调节高度</strong><span>拖动顶部手柄或滑块自由调整</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="haptic"><span class="feat-ic"><svg class="ic"><use href="#ic-wave"/></svg></span><span class="feat-tx"><strong>输入震动</strong><span>按键触感、音效与按压动效反馈</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="wordbook"><span class="feat-ic"><svg class="ic"><use href="#ic-book"/></svg></span><span class="feat-tx"><strong>词库导入</strong><span>导入 TXT / JSON 词库，候选优先</span></span><span class="feat-arrow">›</span></button>
+    </div>
+    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左下角地球键打开功能菜单</div>
+  </aside>
+
+  <div class="device-wrap" id="deviceWrap">
+    <div class="device"><span class="side-btn"></span>
+      <div class="screen" id="screen">
+        <div class="wallpaper"></div>
+        <div class="notch"></div>
+
+        <div class="statusbar">
+          <span class="status-time" id="clock">9:41</span>
+          <span class="status-icons">
+            <svg viewBox="0 0 18 12"><path d="M1 9h2v3H1zM5 7h2v5H5zM9 4.5h2v7.5H9zM13 2h2v10h-2z"/></svg>
+            <svg viewBox="0 0 8 12"><circle cx="4" cy="2" r="1.3"/><circle cx="4" cy="10" r="1.3"/><path d="M4 3.5v5" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 10.6a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4zM4.6 7.2a4.8 4.8 0 0 1 6.8 0l1.2-1.3a6.6 6.6 0 0 0-9.2 0zM2 4.5a8.6 8.6 0 0 1 12 0l1.2-1.3a10.4 10.4 0 0 0-14.4 0z"/></svg>
+            <svg class="bat" viewBox="0 0 27 12"><path d="M11 1L8 6h4l-2 5 7-6h-4l2-4z"/><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".6"/><path d="M24 4v4a2.2 2.2 0 0 0 0-4z"/></svg>
+          </span>
+        </div>
+
+        <div class="appview">
+          <div class="navbar"><button class="nav-btn" id="navBack">‹ 备忘录</button><span class="nav-title">新建备忘录</span><button class="nav-btn" id="navDone">完成</button></div>
+          <div class="doc-meta" id="docMeta">今天 00:00</div>
+          <div class="editor-wrap"><textarea id="editor" spellcheck="false" placeholder="轻触此处开始输入…"></textarea></div>
+          <div class="app-foot"><span id="charCount">0 个字符</span><span style="display:flex;align-items:center;gap:12px">
+            <svg class="ic" id="footClear" title="清空文本"><use href="#ic-trash"/></svg>
+            <svg class="ic" id="footCopy" title="复制全文"><use href="#ic-copy"/></svg></span></div>
+        </div>
+
+        <!-- ========== 输入法 ========== -->
+        <div class="ime" id="ime">
+          <div class="grip" id="grip" title="上下拖动调节键盘高度"><span class="grip-bar"></span></div>
+
+          <div class="translate-bar" id="translateBar">
+            <span class="tr-badge" id="trBadge">中→英</span>
+            <span class="tr-text" id="trText">开始输入，译文将实时显示在这里…</span>
+            <span class="tr-acts"><button id="trReplace">替换</button><button id="trInsert">插入</button></span>
+          </div>
+
+          <div class="candidate-bar" id="candidateBar">
+            <div class="pinyin-box" id="pinyinBox"></div>
+            <div class="cand-scroll" id="candScroll"></div>
+            <div class="cand-collapse" id="btnCollapse" title="收起键盘（保留预选词）"><svg class="ic"><use href="#ic-chevron-down"/></svg></div>
+          </div>
+
+          <div class="collapse-tip">键盘已收起 · 预选词仍可点选 <button id="btnExpand">展开键盘</button></div>
+
+          <div class="keyboard-body" id="keyboardBody">
+            <div class="kview show" id="viewKeys"></div>
+            <div class="kview" id="viewEmoji">
+              <div class="panel panel-inline show">
+                <div class="panel-head"><strong>表情与符号</strong><div class="acts"><button data-view="keys">返回键盘</button></div></div>
+                <div class="panel-body"><div class="emoji-grid" id="emojiGrid"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="panelClipboard">
+            <div class="panel-head"><strong>剪贴板历史</strong><div class="acts"><button id="clipClear">清空</button><button data-view="keys">完成</button></div></div>
+            <div class="panel-tabs">
+              <button data-view="keys"><svg class="ic"><use href="#ic-keyboard"/></svg>键盘</button>
+              <button data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg>剪贴板</button>
+              <button data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg>手写</button>
+              <button data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg>表情</button>
+              <button data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg>词库</button>
+              <button data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg>设置</button>
+            </div>
+            <div class="panel-body">
+              <div class="clip-add"><input id="clipInput" placeholder="添加一条剪贴板内容…"><button id="clipAdd">添加</button></div>
+              <div id="clipList"></div>
+            </div>
+          </div>
+
+          <div class="panel" id="panelHandwrite">
+            <div class="panel-head"><strong>手写找字</strong><div class="acts"><button data-view="keys">返回键盘</button></div></div>
+            <div class="panel-tabs">
+              <button data-view="keys"><svg class="ic"><use href="#ic-keyboard"/></svg>键盘</button>
+              <button data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg>剪贴板</button>
+              <button data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg>手写</button>
+              <button data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg>表情</button>
+              <button data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg>词库</button>
+              <button data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg>设置</button>
+            </div>
+            <div class="hw-wrap">
+              <div class="hw-canvas-box"><canvas id="hwCanvas"></canvas><div class="hw-placeholder" id="hwPlaceholder">写</div></div>
+              <div class="hw-result" id="hwResult"></div>
+              <div class="hw-hint" id="hwHint">在上方区域手写汉字，点「识别」查找候选字</div>
+              <div class="hw-tools">
+                <button class="hw-btn" id="hwUndo">撤销</button><button class="hw-btn" id="hwClear">清空</button>
+                <button class="hw-btn primary" id="hwRecognize">识别</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部地球 / 麦克风（参考图） -->
+          <div class="bottom-row">
+            <button id="btnGlobe" title="功能菜单 / 切换键盘"><svg class="ic"><use href="#ic-globe"/></svg></button>
+            <button id="btnMic" title="语音输入（演示）"><svg class="ic"><use href="#ic-mic"/></svg></button>
+          </div>
+          <div class="home-bar"><i></i></div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="func-mask" id="funcMask"></div>
+        <div class="func-menu" id="funcMenu">
+          <h4>KeyFlow · 键盘功能</h4>
+          <div class="func-grid">
+            <button class="func-item" id="fmLang"><svg class="ic"><use href="#ic-lang"/></svg><span>中 / 英</span></button>
+            <button class="func-item" data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg><span>剪贴板</span></button>
+            <button class="func-item" data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg><span>手写找字</span></button>
+            <button class="func-item" id="fmTranslate"><svg class="ic"><use href="#ic-translate"/></svg><span>边写边译</span></button>
+            <button class="func-item" data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg><span>表情</span></button>
+            <button class="func-item" data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg><span>词库</span></button>
+            <button class="func-item" data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg><span>设置</span></button>
+            <button class="func-item" id="fmCollapse"><svg class="ic"><use href="#ic-keyboard-down"/></svg><span>收起键盘</span></button>
+          </div>
+          <div class="func-hint">按参考图按键配色绘制 · 拖动键盘顶部横条可调高度</div>
+        </div>
+
+        <!-- 设置面板 -->
+        <div class="sheet-mask" id="sheetMask"></div>
+        <div class="sheet" id="sheet">
+          <div class="sheet-head"><strong>输入法设置</strong><button id="sheetDone">完成</button></div>
+          <div class="sheet-scroll">
+            <div class="group-title">键盘与输入</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#ff9500"><svg class="ic"><use href="#ic-height"/></svg></span>
+                <div class="row-main"><strong>键盘高度</strong><span>也可直接拖动键盘顶部的小横条</span></div></div>
+              <div class="range-row"><div class="range-label"><span>紧凑</span><span id="heightVal">226 px</span><span>舒展</span></div>
+                <input type="range" id="heightRange" min="180" max="320" step="2" value="226"></div>
+              <div class="row"><span class="row-ic" style="background:#ff3b30"><svg class="ic"><use href="#ic-wave"/></svg></span>
+                <div class="row-main"><strong>输入震动</strong><span>按键触感（不支持的设备以音效 / 动效模拟）</span></div>
+                <button class="switch" id="swHaptic"><i></i></button></div>
+              <div class="row"><span class="row-ic" style="background:#5856d6"><svg class="ic"><use href="#ic-spark"/></svg></span>
+                <div class="row-main"><strong>按键音效</strong><span>轻微「嗒」声，跟随系统输入法习惯</span></div>
+                <button class="switch" id="swSound"><i></i></button></div>
+              <div class="row"><span class="row-ic" style="background:#8e8e93"><svg class="ic"><use href="#ic-moon"/></svg></span>
+                <div class="row-main"><strong>浅色外观</strong><span>关闭即使用参考图的深色磨砂按键配色</span></div>
+                <button class="switch" id="swLight"><i></i></button></div>
+            </div>
+
+            <div class="group-title">智能功能</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#007aff"><svg class="ic"><use href="#ic-translate"/></svg></span>
+                <div class="row-main"><strong>边写边译</strong><span>输入时实时翻译，可替换原文或插入译文</span></div>
+                <button class="switch" id="swTranslate"><i></i></button></div>
+              <div class="row"><div class="row-main"><strong>翻译方向</strong></div>
+                <div class="seg" id="segDirection" style="width:190px">
+                  <button class="on" data-dir="zh2en">中 → 英</button><button data-dir="en2zh">英 → 中</button><button data-dir="auto">自动</button></div></div>
+              <div class="row"><span class="row-ic" style="background:#34c759"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span>
+                <div class="row-main"><strong>收起键盘后保留预选词</strong><span>键盘隐藏时候选栏仍可点选上屏</span></div>
+                <button class="switch on" id="swCollapseCand"><i></i></button></div>
+            </div>
+
+            <div class="group-title">词库管理</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#af52de"><svg class="ic"><use href="#ic-book"/></svg></span>
+                <div class="row-main"><strong>用户词库</strong><span>导入的词条将在拼音候选中最优先显示</span></div></div>
+              <div class="stat-grid">
+                <div class="stat"><b id="statBuiltin">0</b><span>内置词条</span></div>
+                <div class="stat"><b id="statUser">0</b><span>导入词条</span></div>
+                <div class="stat"><b id="statClip">0</b><span>剪贴板</span></div>
+              </div>
+              <div class="row" style="display:block">
+                <textarea class="wb-area" id="wbArea" placeholder="粘贴词条，每行一条；支持「词语」或「词语 拼音 词频」格式，例如：&#10;边写边译 bianxiebianyi 99&#10;手写找字 shouxiezhaozi 88"></textarea>
+                <div class="wb-btns">
+                  <label class="file-label" for="wbFile"><svg class="ic"><use href="#ic-import"/></svg>选择文件</label>
+                  <input type="file" id="wbFile" accept=".txt,.json,.csv">
+                  <button id="wbImport">导入词条</button><button class="ghost" id="wbExport">导出</button><button class="ghost" id="wbClear">清空</button>
+                </div>
+                <div class="wb-preview" id="wbPreview">尚未导入词库</div>
+              </div>
+            </div>
+
+            <div class="group-title">关于</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#30b0c7"><svg class="ic"><use href="#ic-info"/></svg></span>
+                <div class="row-main"><strong>KeyFlow · iOS 磨砂键盘交互原型</strong><span>按键设计参照 iOS 深色键盘；拼音、翻译与手写识别均为本地演示引擎，无需联网。</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ KeyFlow 本地引擎数据 ============ */
+window.KF_DATA = (function () {
+
+  /* 合法拼音音节表（用于字母串切分） */
+  const SYLLABLE_RAW = `a ai an ang ao ba bai ban bang bao bei ben beng bi bian biao bie bin bing bo bu
+  ca cai can cang cao ce cen ceng cha chai chan chang chao che chen cheng chi chong chou chu chua chuai chuan chuang chui chun chuo ci cong cou cu cuan cui cun cuo
+  da dai dan dang dao de dei den deng di dia dian diao die ding dong dou du duan dui dun duo
+  e ei en eng er fa fan fang fei fen feng fo fou fu
+  ga gai gan gang gao ge gei gen geng gong gou gu gua guai guan guang gui gun guo
+  ha hai han hang hao he hei hen heng hong hou hu hua huai huan huang hui hun huo
+  ji jia jian jiang jiao jie jin jing jiong jiu ju juan jue jun
+  ka kai kan kang kao ke ken keng kong kou ku kua kuai kuan kuang kui kun kuo
+  la lai lan lang lao le lei leng li lia lian liang liao lie lin ling liu long lou lu luan lun luo lv lue
+  ma mai man mang mao me mei men meng mi mian miao mie min ming miu mo mou mu
+  na nai nan nang nao ne nei nen neng ni nian niang niao nie nin ning niu nong nou nu nuan nuo nv nve
+  o ou pa pai pan pang pao pei pen peng pi pian piao pie pin ping po pou pu
+  qi qia qian qiang qiao qie qin qing qiong qiu qu quan que qun
+  ran rang rao re ren reng ri rong rou ru rua ruan rui run ruo
+  sa sai san sang sao se sen seng sha shai shan shang shao she shei shen sheng shi shou shu shua shuai shuan shuang shui shun shuo si song sou su suan sui sun suo
+  ta tai tan tang tao te teng ti tian tiao tie ting tong tou tu tuan tui tun tuo
+  wa wai wan wang wei wen weng wo wu
+  xi xia xian xiang xiao xie xin xing xiong xiu xu xuan xue xun
+  ya yan yang yao ye yi yin ying yo yong you yu yuan yue yun
+  za zai zan zang zao ze zei zen zeng zha zhai zhan zhang zhao zhe zhei zhen zheng zhi zhong zhou zhu zhua zhuai zhuan zhuang zhui zhun zhuo zi zong zou zu zuan zui zun zuo`;
+  const SYLLABLES = new Set(SYLLABLE_RAW.split(/\s+/).filter(Boolean));
+
+  /* 拼音 → 候选词/字（每行：拼音 候选1 候选2 …） */
+  const DICT_RAW = `
+a 啊 阿 呵 吖 腌
+ai 爱 矮 挨 唉 艾 碍 癌 哀
+an 安 按 案 暗 岸 俺 鞍
+ba 吧 把 八 爸 巴 拔 罢 霸 坝
+bai 白 百 摆 败 拜 柏 佰
+ban 板 版 办 半 般 班 搬 伴 颁 瓣
+bang 帮 棒 榜 邦 膀 绑
+bao 包 报 保 抱 宝 饱 爆 薄 豹
+bei 被 北 备 倍 杯 背 悲 贝 辈
+ben 本 笨 奔 份
+bi 比 笔 必 避 闭 壁 币 碧 毕 逼
+bian 边 变 便 遍 编 辩 鞭 扁 贬 辨
+biao 表 标 彪 镖 婊
+bie 别 憋 鳖 蹩
+bin 宾 滨 彬 斌 鬓
+bing 并 病 冰 饼 兵 丙 柄 秉
+bo 波 播 博 拨 伯 薄 泊 脖 玻
+bu 不 部 步 布 补 捕 怖 簿
+cai 才 菜 采 财 材 彩 裁 猜
+can 参 餐 残 惨 灿 蚕
+ce 测 策 册 侧 厕
+cen 参
+ceng 层 曾 蹭
+cha 查 茶 差 察 插 叉 诧
+chai 拆 柴 豺
+chan 产 谈 禅 缠 铲 阐
+chang 长 常 场 唱 厂 尝 畅 偿 肠
+chao 超 朝 潮 吵 炒 抄 巢
+che 车 彻 撤 扯 澈
+chen 陈 沉 晨 臣 尘 衬 趁
+cheng 成 城 程 称 承 乘 诚 惩 澄
+chi 吃 迟 持 池 尺 赤 翅 斥 弛
+chu 出 处 初 除 触 楚 储 厨 础
+chuan 传 船 穿 川 串 喘
+chuang 窗 床 创 闯 疮
+chui 吹 垂 锤 炊 捶
+chun 春 纯 唇 蠢 醇
+ci 词 次 此 刺 磁 辞 瓷 慈 赐
+cong 从 丛 聪 葱 囱
+cu 粗 促 醋 簇 卒
+cun 村 存 寸 措
+cuo 错 措 挫 搓 锉
+da 大 打 达 答 搭 哒
+dai 带 代 待 戴 袋 呆 贷 逮
+dan 但 单 淡 蛋 担 丹 胆 弹
+dang 当 党 挡 档 荡
+dao 到 道 导 岛 倒 刀 盗 稻 悼
+de 的 得 德 地
+deng 等 灯 登 邓 瞪 凳
+di 地 第 低 底 敌 抵 滴 帝 递
+dian 点 电 店 典 垫 殿 颠
+diao 掉 调 钓 雕 刁 吊
+ding 定 顶 订 丁 钉 鼎 叮
+dong 动 东 懂 冬 洞 冻 董 栋
+dou 都 斗 豆 抖 陡 逗
+du 度 读 独 都 毒 渡 督 堵 赌 杜
+duan 段 断 短 端 锻 缎
+dui 对 队 堆 兑 敦
+dun 顿 盾 蹲 吨 钝
+duo 多 朵 躲 夺 舵 堕 咄
+e 额 恶 饿 鹅 厄 扼
+er 而 二 儿 耳 尔 饵
+fa 法 发 罚 乏 伐 筏 阀
+fan 反 饭 烦 范 翻 凡 返 贩
+fang 方 放 房 防 访 纺 仿 芳
+fei 非 飞 费 肥 废 肺 啡
+fen 分 份 粉 奋 纷 氛 坟
+feng 风 封 丰 疯 峰 锋 蜂 逢
+fu 复 服 福 附 府 负 夫 父 富 妇 付 幅 扶 浮 符 腐 辅 抚
+gai 该 改 盖 概 钙 溉
+gan 感 干 敢 赶 甘 肝 杆 尴
+gang 刚 钢 港 岗 纲 缸
+gao 高 搞 告 稿 膏 糕 篙
+ge 个 各 歌 格 哥 隔 割 革 阁
+gei 给
+gen 跟 根 亘
+geng 更 耕 耿 哽
+gong 功 工 公 共 供 宫 弓 攻 恭 贡 拱
+gou 够 狗 构 购 勾 沟 钩
+gu 古 故 顾 固 骨 鼓 股 谷 姑
+gua 挂 瓜 刮 寡 卦
+guai 怪 拐 乖
+guan 关 观 管 馆 惯 冠 灌 罐
+guang 光 广 逛 胱
+gui 贵 规 归 柜 鬼 桂 跪
+gun 滚 棍
+guo 国 过 果 锅 裹 郭
+hai 还 海 害 孩 嗨 亥
+han 汉 喊 含 寒 汗 韩 函 旱
+hang 行 航 杭 夯
+hao 好 号 豪 毫 耗 浩 嚎
+he 和 喝 合 何 河 盒 贺 核 荷
+hei 黑 嘿
+hen 很 狠 恨 痕
+heng 横 恒 衡 哼
+hong 红 宏 洪 轰 虹 哄
+hou 后 候 厚 猴 喉 吼
+hu 户 护 互 湖 呼 胡 虎 忽 糊 壶
+hua 话 花 画 化 华 划 滑 哗
+huai 坏 怀 淮 徊
+huan 换 还 环 欢 缓 患 幻 唤 焕
+huang 黄 皇 慌 晃 谎 荒 煌
+hui 会 回 挥 灰 恢 辉 惠 汇 慧
+hun 混 婚 昏 魂 荤
+huo 或 火 活 货 获 伙 惑 霍
+ji 计 机 几 及 基 级 记 即 集 济 寄 击 极 际 季 纪 技 继 剂 疾 急 积 鸡 迹 吉
+jia 家 加 假 价 架 甲 佳 夹 驾
+jian 键 剪 见 件 简 间 建 减 检 健 坚 肩 兼 艰 监 尖 箭 剑 渐 荐
+jiang 将 江 讲 奖 降 姜 匠 酱
+jiao 叫 教 脚 交 角 焦 骄 浇 搅
+jie 节 接 结 解 界 街 姐 借 介 届 戒 截 杰 捷 洁 阶 揭
+jin 今 进 金 近 仅 紧 尽 禁 津 斤 谨 锦
+jing 经 京 精 静 竟 境 镜 警 竞 净 井 景
+jiu 就 九 久 酒 旧 救 究 纠
+ju 局 据 句 举 具 剧 距 巨 聚 拒
+jue 决 觉 绝 角 爵 掘 倔
+jun 军 君 均 俊 菌 峻
+kai 开 凯 慨 楷
+kan 看 砍 刊 坎 勘
+kang 康 抗 扛 炕
+kao 考 靠 烤 拷 铐
+ke 可 课 克 客 刻 渴 科 颗 壳 咳
+ken 肯 垦 恳 啃
+kong 空 控 孔 恐 崆
+kou 口 扣 寇 叩
+ku 库 酷 苦 哭 裤 枯 窟
+kua 跨 夸 垮 挎
+kuai 快 块 筷 会
+kuan 宽 款
+kuang 况 框 狂 矿 旷
+kui 亏 葵 魁 愧 溃
+kun 困 昆 捆
+kuo 扩 阔 括
+lai 来 赖 莱 睐
+lan 蓝 兰 拦 篮 懒 烂 览 滥
+lang 浪 狼 郎 廊 朗
+lao 老 劳 牢 捞 唠 姥
+le 了 乐 勒
+lei 类 累 泪 雷 蕾 垒
+leng 冷 愣 棱
+li 里 力 理 立 李 例 离 历 利 礼 丽 励
+lian 连 联 练 脸 恋 炼 链 莲 廉 帘 怜
+liang 两 量 亮 良 凉 辆 梁 谅
+liao 了 料 聊 疗 辽 寥
+lie 列 烈 裂 劣 猎
+lin 林 临 邻 淋 磷 鳞
+ling 领 令 另 灵 零 龄 铃 岭
+liu 六 流 留 刘 柳 溜
+long 龙 笼 隆 聋 垄
+lou 楼 漏 搂 陋
+lu 路 录 陆 露 鲁 炉 鹿 卢
+luan 乱 卵 峦
+lun 论 轮 伦 仑
+luo 落 罗 络 洛 螺 裸
+ma 吗 妈 马 码 骂 麻 嘛
+mai 买 卖 麦 脉 迈 埋
+man 满 慢 曼 漫 瞒 蛮
+mang 忙 盲 茫 芒
+mao 毛 猫 帽 冒 貌 矛 贸
+me 么
+mei 没 美 每 妹 梅 媒 眉 媚
+men 们 门 闷 扪
+meng 梦 猛 蒙 盟 懵
+mi 米 密 迷 蜜 秘 谜 觅
+mian 面 免 棉 眠 勉 缅
+miao 秒 苗 妙 描 庙
+min 民 敏 闽 抿
+ming 明 名 命 鸣 铭 冥
+mo 摸 莫 末 默 模 魔 磨 墨 膜
+mou 某 谋 眸
+mu 木 目 母 幕 墓 慕 牧 睦
+na 那 拿 哪 纳 娜 呐
+nan 难 男 南 楠 喃
+nao 脑 闹 恼 挠
+ne 呢
+nei 内
+neng 能
+ni 你 尼 呢 泥 拟 逆 腻 匿
+nian 年 念 粘 碾 撵
+niang 娘 酿
+niao 鸟 尿 袅
+nin 您
+ning 宁 凝 拧 狞
+niu 牛 扭 纽 钮
+nong 弄 农 浓 脓
+nu 努 怒 奴
+nuan 暖
+nuo 诺 挪 懦 糯
+pai 派 排 拍 牌 徘
+pan 判 盘 盼 叛 攀
+pang 旁 胖 庞 膀
+pao 跑 泡 抛 炮 袍
+pei 配 陪 赔 培 佩
+peng 朋 碰 棚 鹏 膨 捧
+pi 皮 批 披 疲 匹 脾 啤
+pian 片 篇 偏 骗 便
+piao 票 飘 漂 瓢
+pin 品 拼 贫 频 聘
+ping 平 评 瓶 凭 苹 屏 萍
+po 破 颇 坡 泼 婆 迫
+pu 普 铺 扑 朴 谱 浦
+qi 起 气 七 其 期 齐 奇 骑 启 器 汽 棋 欺 妻 企 岂 弃
+qia 恰 卡 掐
+qian 前 钱 千 签 浅 欠 牵 迁 谦
+qiang 强 抢 墙 枪 腔
+qiao 桥 巧 敲 瞧 乔 悄 俏
+qie 切 且 窃 怯 惬
+qin 亲 勤 琴 秦 侵 寝
+qing 请 清 情 轻 青 晴 庆 倾
+qiu 求 球 秋 丘 囚
+qu 去 区 取 曲 趣 驱 屈 渠
+quan 全 权 劝 圈 泉 犬 拳
+que 却 确 缺 雀 鹊
+qun 群 裙
+ran 然 燃 染
+rang 让 嚷 壤
+rao 绕 扰 饶
+re 热 惹
+ren 人 任 认 忍 仁 刃
+reng 仍 扔
+ri 日
+rong 容 荣 融 绒 溶
+rou 肉 柔 揉
+ru 入 如 儒 乳 辱 汝
+ruan 软
+rui 瑞 锐 蕊
+run 润
+ruo 若 弱
+sai 赛 塞
+san 三 散 伞
+sang 桑 嗓 丧
+sao 扫 骚 嫂
+se 色 涩 瑟
+sha 沙 杀 傻 纱 刹 啥
+shai 晒 筛
+shan 山 善 闪 扇 删 衫
+shang 上 商 伤 尚 赏 裳
+shao 少 烧 稍 哨 勺 绍
+she 设 社 射 舍 摄 涉 蛇 舌
+shei 谁
+shen 什 深 身 伸 神 审 甚 婶 申
+sheng 生 声 升 胜 省 圣 绳 盛 剩
+shi 是 时 十 事 使 式 试 诗 市 实 识 食 石 师 失 施 世 视 示 室 适 史 始 士 势
+shou 手 收 受 首 瘦 守 授 兽 寿 售
+shu 输 书 树 数 叔 舒 属 熟 术 束 述 殊 疏 蔬
+shuai 帅 摔 甩 衰
+shuan 拴 栓
+shuang 双 爽 霜
+shui 水 谁 睡 税
+shun 顺 瞬 舜
+shuo 说 硕 烁
+si 四 死 思 私 丝 司 斯 撕
+song 送 松 宋 耸 诵
+sou 搜 艘 嗽
+su 速 素 诉 塑 苏 俗 宿 肃
+suan 算 酸 蒜
+sui 随 岁 虽 碎 遂 穗
+sun 孙 损 笋
+suo 所 锁 缩 索 唆
+ta 他 她 它 塔 踏 塌
+tai 太 台 抬 态 泰 胎
+tan 谈 弹 探 摊 贪 滩 坛
+tang 汤 糖 躺 趟 堂 唐 烫
+tao 套 逃 桃 讨 淘 陶
+te 特
+teng 疼 腾 藤
+ti 提 题 体 替 踢 梯 剔
+tian 天 田 添 甜 填 舔
+tiao 调 条 跳 挑 迢
+tie 铁 贴 帖
+ting 听 停 厅 挺 庭 廷 艇
+tong 同 通 统 痛 铜 童 筒 桶 桐
+tou 头 投 透 偷
+tu 图 土 突 途 徒 吐 兔 涂
+tuan 团 推
+tui 推 腿 退 褪
+tun 吞 屯 臀
+tuo 脱 拖 托 妥 拓 驼
+wai 外 歪
+wan 完 万 晚 玩 弯 碗 挽
+wang 王 网 往 望 忘 旺 汪
+wei 为 位 未 味 卫 威 微 伟 围 维 唯 危 尾 委
+wen 文 问 闻 温 稳 纹 吻
+weng 翁 嗡
+wo 我 窝 握 沃 喔
+wu 无 五 物 务 误 屋 舞 午 武 吴 乌 污 悟 雾
+xi 系 西 细 习 喜 洗 戏 吸 希 息 席 析 稀 溪 锡 熄
+xia 下 夏 吓 峡 侠 暇 霞 狭 虾
+xian 现 先 线 见 县 显 险 鲜 限 献 闲
+xiang 想 向 象 相 香 响 乡 详 箱 享
+xiao 小 笑 校 消 销 晓 效 肖 孝 萧
+xie 写 谢 些 鞋 斜 携 泄 械 卸 屑 谐 歇
+xin 新 心 信 辛 欣 薪 芯
+xing 行 星 性 型 兴 形 姓 醒 幸
+xiong 兄 胸 熊 凶 雄
+xiu 修 休 秀 袖 绣 锈
+xu 需 须 许 续 序 虚 徐 蓄 叙
+xuan 选 宣 悬 旋 玄 轩 炫 绚
+xue 学 雪 血 穴 削
+xun 寻 训 迅 循 询 旬 巡
+ya 呀 压 牙 亚 鸭 雅 芽
+yan 眼 言 演 严 研 验 烟 盐 沿 燕 颜
+yang 样 阳 洋 养 央 羊 仰 氧
+yao 要 药 摇 腰 邀 遥 咬 耀
+ye 也 业 夜 叶 爷 野 液 页
+yi 一 以 已 意 义 医 衣 依 易 亦 亿 异 议 译 艺 忆 益 移 遗 宜 椅 疑 仪
+yin 因 音 引 印 银 饮 隐 阴 瘾
+ying 应 英 影 营 硬 赢 迎 映 盈 颖 鹰
+yong 用 永 勇 拥 涌 泳 咏 庸
+you 有 又 右 由 友 游 油 尤 优 邮 幽 悠 诱
+yu 与 于 语 雨 鱼 遇 余 玉 育 欲 域 予 羽 宇 御 誉 豫 裕 郁 娱 愚 愉
+yuan 原 元 远 院 圆 愿 员 源 园 缘 援 怨 苑
+yue 月 约 越 阅 跃 乐 岳 悦
+yun 云 运 允 孕 韵 晕 匀
+za 杂 砸 咋
+zai 在 再 载 灾 栽 宰
+zan 咱 赞 暂 攒
+zang 脏 藏 葬
+zao 早 造 遭 糟 燥 澡 枣
+ze 则 责 择 泽
+zeng 增 赠 曾
+zha 扎 炸 渣 眨 诈
+zhai 摘 窄 债 宅
+zhan 站 占 战 展 沾 粘 斩 盏
+zhang 长 张 章 涨 掌 帐 障 丈
+zhao 找 着 照 招 朝 赵 兆 爪 罩
+zhe 这 着 者 折 哲 浙 遮
+zhen 震 真 针 阵 珍 诊 枕 振 镇 贞 侦
+zheng 正 整 政 证 争 征 郑 挣 蒸
+zhi 只 之 知 直 值 制 纸 指 支 至 治 质 志 职 致 执 置 殖
+zhong 中 种 重 众 终 忠 钟 仲
+zhou 周 州 洲 舟 粥 皱 骤
+zhu 主 住 注 助 逐 珠 朱 猪 竹 煮 祝 驻
+zhuan 转 专 传 砖 赚
+zhuang 装 状 庄 壮 撞 幢
+zhui 追 坠 缀
+zhun 准
+zhuo 桌 捉 卓 拙 灼
+zi 字 自 子 紫 资 仔 姿 滋 兹 咨 籽 梓
+zong 总 纵 宗 综 踪
+zou 走 奏 揍
+zu 组 足 祖 租 阻 族
+zuan 钻 赚
+zui 最 嘴 醉 罪
+zun 尊 遵
+zuo 做 作 左 坐 座 昨 佐
+nihao 你好 逆好
+woaini 我爱你
+zhongguo 中国
+renmin 人民
+shurufa 输入法
+jianqieban 剪贴板
+ciku 词库 辞库
+daoru 导入
+zhendong 震动 振动
+gaodu 高度
+shouqi 收起 手气
+jianpan 键盘
+yuxuanci 预选词
+bianxiebianyi 边写边译
+shouxiezhaozi 手写找字
+shouxie 手写 收写
+zhaozi 找字 照字
+tiaojie 调节 调解
+gongneng 功能
+jiemian 界面
+sheji 设计 涉及
+yonghu 用户
+huanying 欢迎
+yingyong 应用
+shouji 手机 收集
+zidingyi 自定义
+shuru 输入
+fanyi 翻译
+shibie 识别
+zidong 自动
+baocun 保存
+qingkong 清空
+tianjia 添加
+fuzhi 复制
+charu 插入
+tihuan 替换
+zhongwen 中文
+yingwen 英文
+jintian 今天
+mingtian 明天
+zuotian 昨天
+xianzai 现在
+shijian 时间
+pengyou 朋友
+shenghuo 生活
+meihao 美好
+anquan 安全
+fangbian 方便
+kuaijie 快捷
+gaoxiao 高效
+zhuanye 专业
+wanmei 完美
+wangluo 网络
+fenxiang 分享
+xiexie 谢谢
+zaijian 再见
+duibuqi 对不起
+meiguanxi 没关系
+shenme 什么
+weishenme 为什么
+zenme 怎么
+keyi 可以
+yinggai 应该
+xihuan 喜欢
+gongzuo 工作
+xuexi 学习
+meitian 每天
+yidian 一点
+zheli 这里
+nali 那里
+women 我们
+nimen 你们
+tamen 他们
+dajia 大家
+shijie 世界
+kaixin 开心
+kuaile 快乐
+haode 好的
+shoudao 收到
+qing 请
+ninhao 您好
+zaoshang 早上
+wanan 晚安
+chifan 吃饭
+heshui 喝水
+dianhua 电话
+xinxi 信息
+beiwanglu 备忘录
+cidian 词典
+lianxiang 联想
+shangping 上屏
+anniu 按钮
+gongju 工具
+lan 栏
+zhuangtai 状态
+moshi 模式
+pinyin 拼音
+yingwenmoshi 英文模式
+`;
+  const DICT = {};
+  DICT_RAW.trim().split('\n').forEach(line => {
+    const p = line.trim().split(/\s+/);
+    if (p.length >= 2) DICT[p[0]] = p.slice(1);
+  });
+
+  /* 汉字 → 拼音（用于导入词库自动注音，覆盖常用字） */
+  const HZ_PY_RAW = `啊a 爱ai 安an 八ba 白bai 板ban 帮bang 包bao 被bei 本ben 比bi 边bian 表biao 别bie 并bing 波bo 不bu 才cai 参can 层ceng 查cha 产chan 长chang 超chao 车che 陈chen 成cheng 吃chi 出chu 传chuan 窗chuang 春chun 词ci 从cong 粗cu 村cun 错cuo 大da 带dai 但dan 当dang 到dao 的de 等deng 地di 点dian 调diao 定ding 动dong 都dou 度du 段duan 对dui 多duo 额e 而er 法fa 反fan 方fang 非fei 分fen 风feng 复fu 该gai 感gan 刚gang 高gao 个ge 给gei 跟gen 更geng 功gong 够gou 古gu 挂gua 怪guai 关guan 光guang 贵gui 国guo 还hai 汉han 行hang 好hao 和he 黑hei 很hen 横heng 红hong 后hou 户hu 话hua 坏huai 换huan 黄huang 会hui 混hun 或huo 计ji 家jia 键jian 剪jian 将jiang 叫jiao 节jie 今jin 经jing 就jiu 局ju 决jue 军jun 开kai 看kan 康kang 考kao 可ke 肯ken 空kong 口kou 库ku 跨kua 快kuai 宽kuan 况kuang 亏kui 困kun 扩kuo 来lai 蓝lan 浪lang 老lao 了le 类lei 冷leng 里li 连lian 两liang 了liao 列lie 林lin 领ling 六liu 龙long 楼lou 路lu 乱luan 论lun 落luo 吗ma 买mai 满man 忙mang 毛mao 么me 没mei 们men 梦meng 米mi 面mian 秒miao 民min 明ming 摸mo 某mou 木mu 那na 难nan 脑nao 呢ne 内nei 能neng 你ni 年nian 娘niang 鸟niao 您nin 宁ning 牛niu 弄nong 努nu 暖nuan 诺nuo 派pai 判pan 旁pang 跑pao 配pei 朋peng 皮pi 片pian 票piao 品pin 平ping 破po 普pu 起qi 恰qia 前qian 强qiang 桥qiao 切qie 亲qin 请qing 求qiu 去qu 全quan 却que 群qun 然ran 让rang 绕rao 热re 人ren 仍reng 日ri 容rong 肉rou 入ru 软ruan 瑞rui 润run 若ruo 赛sai 三san 桑sang 扫sao 色se 沙sha 晒shai 山shan 上shang 少shao 设she 谁shei 什shen 生sheng 是shi 手shou 输shu 帅shuai 双shuang 水shui 顺shun 说shuo 四si 送song 搜sou 速su 算suan 随sui 孙sun 所suo 他ta 太tai 谈tan 汤tang 套tao 特te 疼teng 提ti 天tian 调tiao 铁tie 听ting 同tong 头tou 图tu 团tuan 推tui 吞tun 脱tuo 外wai 完wan 王wang 为wei 文wen 翁weng 我wo 无wu 系xi 下xia 现xian 想xiang 小xiao 写xie 新xin 行xing 兄xiong 修xiu 需xu 选xuan 学xue 寻xun 呀ya 眼yan 样yang 要yao 也ye 一yi 因yin 应ying 用yong 有you 与yu 原yuan 月yue 云yun 杂za 在zai 咱zan 脏zang 早zao 则ze 增zeng 扎zha 摘zhai 站zhan 长zhang 找zhao 这zhe 震zhen 正zheng 只zhi 中zhong 周zhou 主zhu 转zhuan 装zhuang 追zhui 准zhun 桌zhuo 字zi 总zong 走zou 组zu 钻zuan 最zui 尊zun 做zuo
+预yu 选xuan 词ci 收shou 起qi 键jian 盘pan 输shu 法fa 剪jian 贴tie 板ban 库ku 导dao 入ru 震zhen 动dong 高gao 度du 手shou 写xie 找zhao 边bian 译yi 功gong 能neng 界jie 面mian 设she 计ji 用yong 户hu 欢huan 迎ying 自zi 定ding 义yi 输shu 入ru 翻fan 识shi 别bie 保bao 存cun 清qing 空kong 添tian 加jia 复fu 制zhi 插cha 换huan 文wen 英ying 今jin 明ming 昨zuo 现xian 时shi 间jian 朋peng 友you 生sheng 活huo 美mei 安an 全quan 方fang 便bian 快kuai 捷jie 效xiao 专zhuan 业ye 完wan 网wang 络luo 分fen 享xiang 谢xie 再zai 见jian 对dui 不bu 没mei 关guan 什shen 么me 为wei 怎zen 可ke 以yi 应ying 该gai 喜xi 欢huan 工gong 作zuo 学xue 习xi 每mei 点dian 这zhe 里li 那na 我wo 们men 大da 家jia 世shi 开kai 心xin 乐le 好hao 的de 到dao 请qing 您nin 早zao 晚wan 吃chi 饭fan 喝he 水shui 电dian 话hua 信xin 息xi 备bei 忘wang 录lu 典dian 联lian 上shang 屏ping 按an 钮niu 工gong 具ju 栏lan 状zhuang 态tai 模mo 式shi 拼pin 音yin 您nin 收shou 到dao 震zhen 感gan 触chu 反fan 馈kui 音yin 效xiao 外wai 观guan 深shen 色se 浅qian 数shu 字zi 符fu 号hao 表biao 情qing 候hou 选xuan 联lian 想xiang 智zhi 能neng 本ben 地di 离li 线xian 测ce 试shi`;
+  const HZ_PY = {};
+  HZ_PY_RAW.trim().split(/\s+/).forEach(t => { HZ_PY[t[0]] = t.slice(1); });
+
+  /* 中 → 英 演示词典 */
+  const ZHEN_RAW = `
+你好=Hello
+您好=Hello
+谢谢=Thank you
+再见=Goodbye
+对不起=Sorry
+没关系=It's OK
+不客气=You're welcome
+早上好=Good morning
+晚安=Good night
+我爱你=I love you
+今天=today
+明天=tomorrow
+昨天=yesterday
+现在=now
+时间=time
+天气=weather
+很好=very good
+非常好=very good
+世界=world
+朋友=friend
+生活=life
+美好=beautiful
+开心=happy
+快乐=happy
+喜欢=like
+爱=love
+我=I
+你=you
+您=you
+他=he
+她=she
+我们=we
+你们=you
+他们=they
+大家=everyone
+是=is
+不是=is not
+有=have
+没有=don't have
+在=at
+这=this
+那=that
+什么=what
+为什么=why
+怎么=how
+可以=can
+应该=should
+很=very
+好=good
+坏=bad
+大=big
+小=small
+多=many
+少=few
+的=of
+和=and
+与=and
+或=or
+了=.
+吗=?
+呢=?
+吧=.
+请=please
+欢迎=welcome
+使用=use
+这款=this
+输入法=input method
+键盘=keyboard
+剪贴板=clipboard
+手写=handwriting
+找字=find characters
+翻译=translate
+边写边译=live translation
+词库=dictionary
+导入=import
+震动=haptic feedback
+高度=height
+调节=adjust
+功能=feature
+界面=interface
+设计=design
+用户=user
+自定义=custom
+输入=input
+文字=text
+识别=recognition
+自动=automatic
+保存=save
+清空=clear
+添加=add
+复制=copy
+插入=insert
+替换=replace
+中文=Chinese
+英文=English
+手机=phone
+应用=app
+收起=collapse
+预选词=candidate words
+候选=candidate
+联想=prediction
+上屏=commit
+按钮=button
+工具=tool
+备忘录=Notes
+信息=message
+电话=phone call
+吃饭=have a meal
+喝水=drink water
+工作=work
+学习=study
+每天=every day
+一点=a little
+这里=here
+那里=there
+中国=China
+北京=Beijing
+会议=meeting
+纪要=minutes
+上午=morning
+点=o'clock
+收货=delivery
+地址=address
+测试=test
+完成=done
+开始=start
+一款=a
+原生=native
+风格=style
+高保真=high-fidelity
+交互=interactive
+原型=prototype
+支持=support
+无需=no need
+联网=internet
+本地=local
+引擎=engine
+，=,
+。=.
+！=!
+？=?
+、=,
+；=;
+：=:
+`;
+  const ZHEN = {};
+  ZHEN_RAW.trim().split('\n').forEach(l => {
+    const i = l.indexOf('=');
+    if (i > 0) ZHEN[l.slice(0, i).trim()] = l.slice(i + 1).trim();
+  });
+
+  /* 英 → 中 补充 */
+  const ENZH_RAW = `hello=你好 hi=嗨 thanks=谢谢 thank=谢谢 goodbye=再见 sorry=抱歉 yes=是的 no=不 ok=好的 today=今天 tomorrow=明天 yesterday=昨天 now=现在 time=时间 weather=天气 good=好 bad=坏 very=很 beautiful=美丽 happy=开心 love=爱 like=喜欢 i=我 you=你 he=他 she=她 we=我们 they=他们 is=是 are=是 am=是 have=有 this=这 that=那 what=什么 why=为什么 how=怎么 can=可以 should=应该 please=请 welcome=欢迎 use=使用 keyboard=键盘 clipboard=剪贴板 handwriting=手写 translate=翻译 dictionary=词典 import=导入 haptic=触感 height=高度 feature=功能 interface=界面 design=设计 user=用户 input=输入 text=文字 chinese=中文 english=英文 phone=手机 app=应用 notes=备忘录 meeting=会议 address=地址 test=测试 done=完成 start=开始 world=世界 life=生活 friend=朋友 china=中国`; 
+  const ENZH = {};
+  ENZH_RAW.trim().split(/\s+/).forEach(t => { const i = t.indexOf('='); if (i > 0) ENZH[t.slice(0, i)] = t.slice(i + 1); });
+  Object.keys(ZHEN).forEach(zh => { const en = ZHEN[zh].toLowerCase(); if (/^[a-z' ]+$/.test(en) && !ENZH[en]) ENZH[en] = zh; });
+
+  /* 手写演示字库：字|笔画数|宽高比|横笔|竖笔|斜笔 */
+  const HAND_RAW = `
+一|1|3.6|1|0|0
+二|2|3.2|2|0|0
+三|3|3.0|3|0|0
+十|2|1.0|1|1|0
+丁|2|1.4|1|1|0
+人|2|1.0|0|0|2
+八|2|1.1|0|0|2
+入|2|1.0|0|0|2
+儿|2|0.9|0|1|1
+大|3|1.3|1|0|2
+小|3|1.0|0|1|2
+山|3|1.2|1|2|0
+口|3|1.2|2|2|0
+川|3|1.1|0|3|0
+上|3|1.0|2|1|0
+下|3|1.1|1|1|1
+之|3|1.3|1|0|2
+子|3|1.1|2|1|0
+女|3|1.0|1|0|2
+门|3|0.9|1|2|0
+日|4|0.9|3|3|0
+月|4|0.8|2|3|1
+水|4|1.0|0|1|3
+火|4|1.0|0|1|3
+木|4|1.0|1|1|2
+中|4|1.0|2|2|0
+手|4|1.0|3|1|1
+文|4|1.1|1|0|3
+心|4|1.2|0|1|3
+王|4|1.1|3|1|0
+天|4|1.2|2|0|2
+不|4|1.1|1|1|2
+开|4|1.1|2|2|0
+方|4|1.0|1|1|2
+五|4|1.2|3|1|0
+写|5|1.0|2|2|1
+字|6|1.0|2|2|2
+好|6|1.0|2|2|2
+我|7|1.0|2|2|3
+你|7|1.0|1|2|4
+词|7|1.0|2|2|3
+库|7|1.0|2|2|3
+输|13|1.0|2|3|4
+入|2|1.0|0|0|2
+法|8|1.0|2|2|3
+键|13|1.0|3|3|3
+盘|11|1.0|3|3|3
+`;
+  const HAND = HAND_RAW.trim().split('\n').map(l => {
+    const p = l.split('|');
+    return { c: p[0], n: +p[1], ratio: +p[2], h: +p[3], v: +p[4], d: +p[5] };
+  });
+
+  const EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 🤪 🤨 🧐 🤓 😎 🥳 😏 😒 😞 😔 😢 😭 😤 😠 🤯 😱 🥺 😴 🤔 🤗 🤭 🫡 👍 👎 👏 🙌 🤝 💪 🙏 ✌️ 🤟 👌 🤞 ✨ ❤️ 🧡 💛 💚 💙 💜 🖤 💯 🔥 🎉 🎊 🌈 ☀️ 🌙 ⭐ 🌸 🍎 ☕ 📱 💻 ⌨️ 📋 📝 ✏️ 🔍 ⚙️ ✅ ❌').split(' ');
+  const PUNCTS = ('， 。 ！ ？ 、 ； ： “ ” ‘ ’ （ ） 【 】 … — ～ · ￥').split(' ');
+
+  return { SYLLABLES, DICT, HZ_PY, ZHEN, ENZH, HAND, EMOJIS, PUNCTS };
+})();
+
+</script>
+<script>
+/* ============ KeyFlow · 交互逻辑（深色磨砂键盘版） ============ */
+(function () {
+  'use strict';
+  const D = window.KF_DATA;
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  /* ---------- 持久化 ---------- */
+  function load(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+  function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+  const DEFAULTS = { lang: 'zh', translate: false, direction: 'zh2en', haptic: true, sound: true, light: false, keepCand: true, kbHeight: 226 };
+  const state = Object.assign({ shift: false, layout: 'letters', view: 'keys', collapsed: false, pinyin: '', assoc: [] }, load('kf_settings_v2', DEFAULTS));
+  let userWords = load('kf_words_v2', [
+    { w: '边写边译', py: 'bianxiebianyi', f: 99 },
+    { w: '手写找字', py: 'shouxiezhaozi', f: 98 },
+    { w: '收起键盘预选词', py: 'shouqijianpanyuxuanci', f: 97 }
+  ]);
+  let clips = load('kf_clips_v2', [
+    { t: '你好，今天天气很好！', d: '刚刚' },
+    { t: 'KeyFlow 输入法 · iOS 磨砂键盘', d: '10 分钟前' },
+    { t: '会议纪要：明天上午 10 点', d: '1 小时前' },
+    { t: '收货地址：北京市海淀区', d: '昨天' }
+  ]);
+  function saveSettings() { const o = {}; Object.keys(DEFAULTS).forEach(k => o[k] = state[k]); store('kf_settings_v2', o); }
+
+  /* ---------- 基础 DOM ---------- */
+  const screen = $('#screen'), editor = $('#editor'), ime = $('#ime');
+  const pinyinBox = $('#pinyinBox'), candScroll = $('#candScroll'), candidateBar = $('#candidateBar'), viewKeys = $('#viewKeys');
+  const translateBar = $('#translateBar'), trText = $('#trText'), trBadge = $('#trBadge');
+  const sheet = $('#sheet'), sheetMask = $('#sheetMask'), sheetScroll = $('.sheet-scroll');
+  const funcMask = $('#funcMask'), funcMenu = $('#funcMenu'), toastEl = $('#toast');
+  let sel = { s: 0, e: 0 }, lastTranslation = '', micTimer = null;
+
+  function toast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(() => toastEl.classList.remove('show'), 1900);
+  }
+
+  /* ---------- 触感 / 音效 ---------- */
+  let audioCtx = null;
+  function playTick() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      audioCtx = audioCtx || new AC(); if (audioCtx.state === 'suspended') audioCtx.resume();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'triangle'; o.frequency.value = state.haptic ? 640 : 920;
+      g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.045);
+      o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.05);
+    } catch (e) { }
+  }
+  function feedback() {
+    if (state.haptic && navigator.vibrate) { try { navigator.vibrate(9); } catch (e) { } }
+    if (state.sound) playTick();
+  }
+
+  /* ---------- 文本编辑 ---------- */
+  function syncSel() { sel.s = editor.selectionStart; sel.e = editor.selectionEnd; }
+  editor.addEventListener('keyup', syncSel); editor.addEventListener('click', syncSel);
+  editor.addEventListener('select', syncSel); editor.addEventListener('blur', syncSel);
+  editor.addEventListener('input', () => { syncSel(); onEditorChange(); });
+  function insertText(t) {
+    const v = editor.value, s = clamp(sel.s, 0, v.length), e = clamp(sel.e, 0, v.length);
+    editor.value = v.slice(0, s) + t + v.slice(e);
+    sel.s = sel.e = s + t.length;
+    try { editor.setSelectionRange(sel.s, sel.e); editor.focus({ preventScroll: true }); } catch (err) { }
+    onEditorChange();
+  }
+  function backspaceText() {
+    const v = editor.value; let s = clamp(sel.s, 0, v.length), e = clamp(sel.e, 0, v.length);
+    if (s !== e) editor.value = v.slice(0, s) + v.slice(e);
+    else if (s > 0) { editor.value = v.slice(0, s - 1) + v.slice(s); s--; } else return;
+    sel.s = sel.e = s;
+    try { editor.setSelectionRange(s, s); editor.focus({ preventScroll: true }); } catch (err) { }
+    onEditorChange();
+  }
+  function onEditorChange() {
+    $('#charCount').textContent = editor.value.length + ' 个字符';
+    if (state.translate) updateTranslation();
+  }
+
+  /* ---------- 拼音引擎 ---------- */
+  function splitPinyin(s) {
+    const res = [];
+    (function dfs(i, path) {
+      if (res.length >= 14 || path.length > 8) return;
+      if (i === s.length) { res.push(path); return; }
+      for (let len = Math.min(6, s.length - i); len >= 1; len--) {
+        const seg = s.slice(i, i + len);
+        if (D.SYLLABLES.has(seg)) dfs(i + len, path.concat(seg));
+      }
+    })(0, []);
+    res.sort((a, b) => a.length - b.length || b[0].length - a[0].length);
+    return res;
+  }
+  function autoPy(w) {
+    let s = '';
+    for (const ch of w) {
+      if (/[\u4e00-\u9fa5]/.test(ch)) s += D.HZ_PY[ch] || '';
+      else if (/[a-z0-9]/i.test(ch)) s += ch.toLowerCase();
+    }
+    return s;
+  }
+  function getCandidates(s) {
+    if (!s) return state.assoc.length ? state.assoc : ['，', '。', '！', '？', '你好', '谢谢', '好的', '收到'];
+    const out = [], seen = new Set();
+    const add = w => { if (w && !seen.has(w)) { seen.add(w); out.push(w); } };
+    userWords.filter(w => w.py === s).sort((a, b) => b.f - a.f).forEach(w => add(w.w));
+    (D.DICT[s] || []).forEach(add);
+    userWords.filter(w => w.py && w.py.startsWith(s) && w.py !== s).sort((a, b) => b.f - a.f).slice(0, 4).forEach(w => add(w.w));
+    const pref = Object.keys(D.DICT).filter(k => k.startsWith(s) && k !== s);
+    pref.sort((a, b) => {
+      const aw = ((D.DICT[a][0] || '').length > 1) ? 0 : 1, bw = ((D.DICT[b][0] || '').length > 1) ? 0 : 1;
+      return aw - bw || a.length - b.length;
+    });
+    pref.slice(0, 4).forEach(k => add(D.DICT[k][0]));
+    const paths = splitPinyin(s);
+    if (paths.length) {
+      paths.slice(0, 3).forEach(p => (D.DICT[p.join('')] || []).slice(0, 3).forEach(add));
+      const lists = paths[0].map(p => (D.DICT[p] || [p]).slice(0, 2));
+      let combos = [''];
+      lists.forEach(list => { const next = []; combos.forEach(c => list.forEach(ch => next.push(c + ch))); combos = next.slice(0, 14); });
+      combos.slice(0, 8).forEach(add);
+    } else {
+      [...D.SYLLABLES].filter(x => x.startsWith(s)).sort((a, b) => a.length - b.length).slice(0, 6)
+        .forEach(p => (D.DICT[p] || []).slice(0, 3).forEach(add));
+    }
+    if (out.length < 2) add(s);
+    return out.slice(0, 20);
+  }
+  function setAssoc(word) {
+    const last = word.slice(-1), pool = [];
+    userWords.forEach(w => { if (w.w !== word && w.w.indexOf(last) >= 0) pool.push(w.w); });
+    Object.keys(D.DICT).forEach(k => (D.DICT[k] || []).forEach(w => {
+      if (w.length > 1 && w.charAt(0) === last && pool.length < 12) pool.push(w);
+    }));
+    state.assoc = [...new Set(pool.slice(0, 5).concat(['的', '了', '吗', '，', '。', '！', '？', '…']))].slice(0, 12);
+  }
+  function syncCandidateBar() {
+    const show = !!state.pinyin || (state.collapsed && state.keepCand);
+    candidateBar.classList.toggle('on', show);
+    $('#btnCollapse').style.display = state.collapsed ? 'none' : '';
+  }
+  function renderCandidates() {
+    const list = getCandidates(state.pinyin);
+    pinyinBox.textContent = state.pinyin || '';
+    candScroll.innerHTML = '';
+    list.forEach((w, i) => {
+      const d = document.createElement('div');
+      d.className = 'cand' + (i === 0 && state.pinyin ? ' first' : '');
+      d.textContent = w; candScroll.appendChild(d);
+    });
+    if (!list.length) { const d = document.createElement('div'); d.className = 'cand-empty'; d.textContent = '输入拼音开始打字…'; candScroll.appendChild(d); }
+    candScroll.scrollLeft = 0;
+    syncCandidateBar();
+  }
+  function commit(word) { if (!word) return; insertText(word); state.pinyin = ''; setAssoc(word); renderCandidates(); }
+  function commitRaw() { if (state.pinyin) { insertText(state.pinyin); state.pinyin = ''; renderCandidates(); } }
+
+  /* ---------- 键盘布局（参考图四行 + 底部地球/麦克风） ---------- */
+  const LAYOUTS = {
+    letters: [
+      'qwertyuiop'.split(''), 'asdfghjkl'.split(''),
+      ['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'delete'],
+      ['layout:numbers:123', 'emoji', 'space', 'return']
+    ],
+    numbers: [
+      '1234567890'.split(''), ['-', '/', ':', ';', '(', ')', '¥', '&', '@', '"'],
+      ['layout:symbols:#+=', '.', ',', '?', '!', "'", 'delete'],
+      ['layout:letters:ABC', 'emoji', 'space', 'return']
+    ],
+    symbols: [
+      ['[', ']', '{', '}', '#', '%', '^', '*', '+', '='], ['_', '\\', '|', '~', '<', '>', '€', '£', '¥', '•'],
+      ['layout:numbers:123', '.', ',', '?', '!', "'", 'delete'],
+      ['layout:letters:ABC', 'emoji', 'space', 'return']
+    ]
+  };
+  function keyHtml(k, rowIdx) {
+    if (k.indexOf('layout:') === 0) {
+      const p = k.split(':');
+      const st = rowIdx === 3 ? ' style="flex:1.3"' : '';
+      return `<button class="key fn ${rowIdx === 2 ? 'wide' : 'k2'}" data-fn="layout" data-v="${p[1]}"${st}><span class="lbl">${esc(p[2])}</span></button>`;
+    }
+    if (k === 'shift') return `<button class="key fn wide ${state.shift ? 'shift-on' : ''}" data-fn="shift"><svg class="ic"><use href="#ic-shift"/></svg></button>`;
+    if (k === 'delete') return `<button class="key fn wide" data-fn="delete"><svg class="ic"><use href="#ic-delete"/></svg></button>`;
+    if (k === 'emoji') return `<button class="key fn" data-fn="emoji" style="flex:1"><svg class="ic"><use href="#ic-emoji"/></svg></button>`;
+    if (k === 'space') return `<button class="key space" data-fn="space">空格</button>`;
+    if (k === 'return') return `<button class="key return" data-fn="return">搜索</button>`;
+    const label = (state.layout === 'letters' && state.shift) ? k.toUpperCase() : k;
+    return `<button class="key ${/[a-z]/.test(k) ? '' : 'special'}" data-k="${esc(k)}">${esc(label)}</button>`;
+  }
+  function renderKeys() {
+    viewKeys.innerHTML = LAYOUTS[state.layout].map((row, ri) => {
+      let inner = row.map(k => keyHtml(k, ri)).join('');
+      if (state.layout === 'letters' && ri === 1) inner = '<span style="flex:.5"></span>' + inner + '<span style="flex:.5"></span>';
+      return `<div class="krow${ri === 2 ? ' key-row3' : ''}">${inner}</div>`;
+    }).join('');
+  }
+
+  /* ---------- 按键逻辑 ---------- */
+  function onChar(ch) {
+    if (state.lang === 'zh' && state.layout === 'letters' && /^[a-zA-Z]$/.test(ch)) {
+      state.pinyin += ch.toLowerCase(); renderCandidates(); return;
+    }
+    let out = ch;
+    if (state.lang === 'en' && state.layout === 'letters' && state.shift) { out = ch.toUpperCase(); state.shift = false; renderKeys(); }
+    insertText(out);
+  }
+  function onDelete() { if (state.pinyin) { state.pinyin = state.pinyin.slice(0, -1); renderCandidates(); } else backspaceText(); }
+  function onSpace() { if (state.pinyin) { const c = getCandidates(state.pinyin); commit(c[0] || state.pinyin); } else insertText(' '); }
+  function onReturn() { if (state.pinyin) { insertText(state.pinyin); state.pinyin = ''; renderCandidates(); } else insertText('\n'); }
+  function switchLayout(v) { commitRaw(); state.layout = v; state.shift = false; renderKeys(); }
+  function toggleLang() {
+    commitRaw(); state.lang = state.lang === 'zh' ? 'en' : 'zh';
+    syncFuncMenu(); saveSettings();
+    toast(state.lang === 'zh' ? '已切换到 中文（拼音）' : '已切换到 英文输入');
+  }
+  function handleKey(el) {
+    if (el.dataset.k !== undefined) return onChar(el.dataset.k);
+    switch (el.dataset.fn) {
+      case 'shift': state.shift = !state.shift; renderKeys(); break;
+      case 'delete': onDelete(); break;
+      case 'space': onSpace(); break;
+      case 'return': onReturn(); break;
+      case 'layout': switchLayout(el.dataset.v); break;
+      case 'emoji': openView('emoji'); break;
+    }
+  }
+
+  /* ---------- 视图 / 功能菜单 ---------- */
+  function openView(v) {
+    state.view = v; closeFuncMenu();
+    if (state.collapsed) setCollapsed(false);
+    ime.classList.toggle('panel-mode', v === 'clipboard' || v === 'handwrite');
+    $('#viewKeys').classList.toggle('show', v === 'keys');
+    $('#viewEmoji').classList.toggle('show', v === 'emoji');
+    $('#panelClipboard').classList.toggle('show', v === 'clipboard');
+    $('#panelHandwrite').classList.toggle('show', v === 'handwrite');
+    $$('.panel-tabs [data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    if (v === 'handwrite') setTimeout(initCanvas, 30);
+    if (v === 'clipboard') renderClips();
+    syncCandidateBar();
+  }
+  function setCollapsed(v) {
+    state.collapsed = v; ime.classList.toggle('collapsed', v);
+    syncCandidateBar();
+    if (v) toast('键盘已收起 · 预选词仍可点选');
+  }
+  function syncFuncMenu() {
+    $('#fmLang').classList.toggle('on', state.lang === 'en');
+    $('#fmLang').querySelector('span').textContent = state.lang === 'zh' ? '中文' : '英文';
+    $('#fmTranslate').classList.toggle('on', state.translate);
+  }
+  function openFuncMenu() { funcMask.classList.add('show'); funcMenu.classList.add('show'); syncFuncMenu(); }
+  function closeFuncMenu() { funcMask.classList.remove('show'); funcMenu.classList.remove('show'); }
+
+  /* ---------- 剪贴板 ---------- */
+  function renderClips() {
+    const box = $('#clipList'); box.innerHTML = '';
+    if (!clips.length) { box.innerHTML = '<div class="clip-empty">剪贴板是空的，添加一条试试</div>'; updateStats(); return; }
+    clips.forEach((c, i) => {
+      const d = document.createElement('div'); d.className = 'clip-item'; d.dataset.i = i;
+      const ic = document.createElement('span'); ic.innerHTML = '<svg class="ic"><use href="#ic-copy"/></svg>';
+      const tx = document.createElement('div'); tx.className = 'clip-tx'; tx.textContent = c.t;
+      const tm = document.createElement('div'); tm.className = 'clip-time'; tm.textContent = c.d; tx.appendChild(tm);
+      const del = document.createElement('button'); del.className = 'clip-del'; del.dataset.del = i;
+      del.innerHTML = '<svg class="ic"><use href="#ic-close"/></svg>';
+      d.append(ic, tx, del); box.appendChild(d);
+    });
+    updateStats();
+  }
+  function addClip(t) {
+    t = (t || '').trim(); if (!t) return;
+    clips = [{ t, d: '刚刚' }].concat(clips.filter(c => c.t !== t)).slice(0, 30);
+    store('kf_clips_v2', clips); renderClips(); updateStats(); toast('已存入剪贴板');
+  }
+
+  /* ---------- 边写边译 ---------- */
+  function detectDir(text) {
+    if (state.direction !== 'auto') return state.direction;
+    return (text.match(/[\u4e00-\u9fa5]/g) || []).length > 0 ? 'zh2en' : 'en2zh';
+  }
+  const PUNCT_EN = { ',': '，', '.': '。', '!': '！', '?': '？', ';': '；', ':': '：' };
+  function zh2en(src) {
+    const out = []; let i = 0;
+    while (i < src.length) {
+      const ch = src.charAt(i);
+      if (/[\u4e00-\u9fa5]/.test(ch)) {
+        let hit = null;
+        for (let len = Math.min(6, src.length - i); len >= 1; len--) {
+          const seg = src.substr(i, len);
+          if (D.ZHEN[seg] !== undefined) { hit = { w: seg, v: D.ZHEN[seg] }; break; }
+        }
+        if (hit) { out.push(hit.v); i += hit.w.length; } else { out.push(ch); i++; }
+      } else if (/[a-zA-Z0-9]/.test(ch)) {
+        let j = i; while (j < src.length && /[a-zA-Z0-9]/.test(src.charAt(j))) j++;
+        out.push(src.slice(i, j)); i = j;
+      } else if (D.ZHEN[ch] !== undefined) { out.push(D.ZHEN[ch]); i++; }
+      else if (/[,.!?;:]/.test(ch)) { out.push(ch); i++; }
+      else i++;
+    }
+    return out.filter(Boolean).join(' ').replace(/\s+([,.!?;:])/g, '$1').replace(/\s+/g, ' ').trim();
+  }
+  function en2zh(src) {
+    return src.split(/\s+/).filter(Boolean).map(tok => {
+      const bare = tok.replace(/[,.!?;:]/g, '');
+      const zh = D.ENZH[bare.toLowerCase()] || bare;
+      const tail = tok.slice(bare.length).split('').map(c => PUNCT_EN[c] || c).join('');
+      return zh + tail;
+    }).join('');
+  }
+  function updateTranslation() {
+    translateBar.classList.toggle('on', !!state.translate);
+    if (!state.translate) return;
+    const raw = editor.value.trim();
+    if (!raw) { trText.textContent = '开始输入，译文将实时显示在这里…'; lastTranslation = ''; return; }
+    const dir = detectDir(raw);
+    trBadge.textContent = dir === 'zh2en' ? '中→英' : '英→中';
+    lastTranslation = dir === 'zh2en' ? zh2en(raw) : en2zh(raw);
+    trText.textContent = lastTranslation || '（暂无译文）';
+  }
+  function toggleTranslate(force) {
+    state.translate = typeof force === 'boolean' ? force : !state.translate;
+    syncSwitch('swTranslate', state.translate); syncFuncMenu();
+    updateTranslation(); saveSettings();
+    toast(state.translate ? '边写边译已开启 · 译文实时显示在键盘上方' : '边写边译已关闭');
+  }
+
+  /* ---------- 手写找字 ---------- */
+  const hwCanvas = $('#hwCanvas');
+  let strokes = [], drawing = false, cur = null;
+  function hwPoint(e) { const r = hwCanvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; }
+  function initCanvas() {
+    const r = hwCanvas.getBoundingClientRect(); if (!r.width || !r.height) return;
+    const dpr = window.devicePixelRatio || 1;
+    hwCanvas.width = r.width * dpr; hwCanvas.height = r.height * dpr;
+    hwCanvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawHw();
+  }
+  function drawHw() {
+    const c = hwCanvas, ctx = c.getContext('2d');
+    const w = c.width / (window.devicePixelRatio || 1), h = c.height / (window.devicePixelRatio || 1);
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = state.light ? 'rgba(60,60,67,.13)' : 'rgba(255,255,255,.10)';
+    ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2);
+    ctx.moveTo(0, 0); ctx.lineTo(w, h); ctx.moveTo(w, 0); ctx.lineTo(0, h); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = state.light ? '#1c1c1e' : '#f2f2f7';
+    ctx.lineWidth = 3.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    strokes.forEach(s => {
+      if (!s.length) return;
+      ctx.beginPath(); ctx.moveTo(s[0].x * w, s[0].y * h);
+      for (let i = 1; i < s.length; i++) ctx.lineTo(s[i].x * w, s[i].y * h);
+      if (s.length === 1) ctx.lineTo(s[0].x * w + .5, s[0].y * h + .5);
+      ctx.stroke();
+    });
+    $('#hwPlaceholder').style.display = strokes.length ? 'none' : '';
+  }
+  function hwFeatures() {
+    let minX = 1, minY = 1, maxX = 0, maxY = 0, hh = 0, vv = 0, dd = 0;
+    strokes.forEach(s => {
+      if (!s.length) return;
+      s.forEach(p => { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); });
+      if (s.length < 2) return;
+      const dx = s[s.length - 1].x - s[0].x, dy = s[s.length - 1].y - s[0].y;
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      if (ax > ay * 2.1) hh++; else if (ay > ax * 2.1) vv++; else dd++;
+    });
+    const bw = Math.max(maxX - minX, .02), bh = Math.max(maxY - minY, .02);
+    return { n: strokes.length, ratio: clamp(bw / bh, .25, 5), h: hh, v: vv, d: dd };
+  }
+  function hwRecognize() {
+    if (!strokes.length) { toast('请先在上方区域手写'); return; }
+    const f = hwFeatures();
+    const scored = D.HAND.map(t => ({
+      c: t.c, s: Math.abs(t.n - f.n) * 3.4 + Math.abs(t.ratio - f.ratio) * 1.5
+        + Math.abs(t.h - f.h) * 1.1 + Math.abs(t.v - f.v) * 1.1 + Math.abs(t.d - f.d) * .9
+    })).sort((a, b) => a.s - b.s);
+    const res = [...new Set(scored.map(x => x.c))].slice(0, 10);
+    const box = $('#hwResult'); box.innerHTML = '';
+    res.forEach(ch => { const b = document.createElement('div'); b.className = 'hw-char'; b.textContent = ch; box.appendChild(b); });
+    $('#hwHint').textContent = `识别到 ${f.n} 笔 · 候选按笔画特征排序（本地演示识别）`;
+    toast(`已找到 ${res.length} 个候选字，点击即可上屏`);
+  }
+  function hwClear() { strokes = []; $('#hwResult').innerHTML = ''; $('#hwHint').textContent = '在上方区域手写汉字，点「识别」查找候选字'; drawHw(); }
+  hwCanvas.addEventListener('pointerdown', e => { e.preventDefault(); hwCanvas.setPointerCapture(e.pointerId); drawing = true; cur = [hwPoint(e)]; strokes.push(cur); drawHw(); });
+  hwCanvas.addEventListener('pointermove', e => { if (!drawing) return; cur.push(hwPoint(e)); drawHw(); });
+  hwCanvas.addEventListener('pointerup', () => { drawing = false; drawHw(); });
+  hwCanvas.addEventListener('pointercancel', () => { drawing = false; });
+
+  /* ---------- 表情 ---------- */
+  function renderEmoji() {
+    const g = $('#emojiGrid'); if (g.children.length) return;
+    D.EMOJIS.concat(D.PUNCTS).forEach(ch => { const b = document.createElement('button'); b.textContent = ch; g.appendChild(b); });
+  }
+
+  /* ---------- 词库 ---------- */
+  function parseLine(line) {
+    const l = line.trim(); if (!l || l.charAt(0) === '#') return null;
+    const p = l.split(/[\s,\t]+/).filter(Boolean);
+    const w = p[0]; let py = '', f = 50;
+    if (/^[a-z]+$/.test(p[1] || '')) { py = p[1]; if (/^\d+$/.test(p[2] || '')) f = +p[2]; }
+    else if (/^\d+$/.test(p[1] || '')) f = +p[1];
+    if (!py) py = autoPy(w);
+    return { w, py, f: clamp(f, 1, 999) };
+  }
+  function importWords(text) {
+    text = (text || '').trim(); if (!text) { toast('请先粘贴词条或选择文件'); return; }
+    let items = [];
+    if (text.charAt(0) === '[' || text.charAt(0) === '{') {
+      try {
+        const j = JSON.parse(text), arr = Array.isArray(j) ? j : (j.words || j.dict || []);
+        arr.forEach(x => {
+          if (typeof x === 'string') { const it = parseLine(x); if (it) items.push(it); }
+          else if (x && (x.word || x.w)) items.push({ w: x.word || x.w, py: x.pinyin || x.py || autoPy(x.word || x.w), f: clamp(+(x.freq || x.f || 50), 1, 999) });
+        });
+      } catch (e) { toast('JSON 格式有误，解析失败'); return; }
+    } else text.split(/\r?\n/).forEach(l => { const it = parseLine(l); if (it) items.push(it); });
+    if (!items.length) { toast('未解析到有效词条'); return; }
+    const map = new Map(); userWords.forEach(w => map.set(w.w, w));
+    items.forEach(w => { const old = map.get(w.w); if (!old || w.f >= old.f) map.set(w.w, w); });
+    userWords = [...map.values()]; store('kf_words_v2', userWords);
+    updateStats(); renderCandidates(); $('#wbArea').value = '';
+    toast(`成功导入 ${items.length} 条词条 · 当前共 ${userWords.length} 条`);
+  }
+  function updateStats() {
+    $('#statBuiltin').textContent = Object.keys(D.DICT).length;
+    $('#statUser').textContent = userWords.length; $('#statClip').textContent = clips.length;
+    $('#wbPreview').textContent = userWords.length
+      ? `已载入 ${userWords.length} 条：${userWords.slice(0, 6).map(w => w.w).join('、')}${userWords.length > 6 ? ' …' : ''}` : '尚未导入词库';
+  }
+  function exportWords() {
+    if (!userWords.length) { toast('词库为空，无法导出'); return; }
+    try {
+      const blob = new Blob([userWords.map(w => `${w.w} ${w.py} ${w.f}`).join('\n')], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'KeyFlow-用户词库.txt';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast('词库已导出为 TXT 文件');
+    } catch (e) { toast('当前环境不支持下载'); }
+  }
+
+  /* ---------- 设置面板 ---------- */
+  function openSheet(which) {
+    sheetMask.classList.add('show'); sheet.classList.add('show');
+    if (which === 'wordbook') setTimeout(() => {
+      const g = $('#wbArea').closest('.group');
+      sheetScroll.scrollTop = Math.max(0, g.getBoundingClientRect().top - sheetScroll.getBoundingClientRect().top + sheetScroll.scrollTop - 16);
+    }, 280);
+    if (which === 'height') setTimeout(() => $('#heightRange').focus(), 280);
+  }
+  function closeSheet() { sheetMask.classList.remove('show'); sheet.classList.remove('show'); }
+  function syncSwitch(id, on) { $('#' + id).classList.toggle('on', !!on); }
+  function setHeight(h) {
+    h = clamp(Math.round(h), 180, 320); state.kbHeight = h; screen.style.setProperty('--kb-h', h + 'px');
+    $('#heightRange').value = h; $('#heightVal').textContent = h + ' px';
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  screen.addEventListener('pointerdown', e => {
+    const hit = e.target.closest('.key,.cand,.hw-char,.emoji-grid button,.clip-item,.func-item,.bottom-row button,.panel-tabs button,.cand-collapse');
+    if (hit) { hit.classList.add('pressed'); setTimeout(() => hit.classList.remove('pressed'), 90); feedback(); }
+  });
+  screen.addEventListener('mousedown', e => {
+    const t = e.target;
+    if (t.closest('input,textarea,label,#wbFile')) return;
+    if (t.closest('.key,.cand,.cand-collapse,.hw-char,.emoji-grid button,.clip-item,.clip-add button,.hw-btn,.tr-acts button,.collapse-tip button,.func-item,.bottom-row button,.panel-tabs button')) {
+      syncSel(); e.preventDefault();
+    }
+  });
+
+  ime.addEventListener('click', e => {
+    const t = e.target;
+    if (t.closest('#btnGlobe')) return openFuncMenu();
+    if (t.closest('#btnMic')) {
+      const b = $('#btnMic');
+      if (micTimer) { clearTimeout(micTimer); micTimer = null; b.classList.remove('mic-listening'); toast('已停止聆听'); return; }
+      b.classList.add('mic-listening'); toast('正在聆听…（语音输入演示）');
+      micTimer = setTimeout(() => { b.classList.remove('mic-listening'); micTimer = null; insertText('语音输入演示'); toast('已插入识别结果（演示）'); }, 1400);
+      return;
+    }
+    if (t.closest('#btnCollapse')) return setCollapsed(true);
+    if (t.closest('#btnExpand')) return setCollapsed(false);
+    if (t.closest('#trReplace')) { if (!lastTranslation) return toast('暂无译文'); editor.value = lastTranslation; sel.s = sel.e = editor.value.length; onEditorChange(); return toast('已用译文替换原文'); }
+    if (t.closest('#trInsert')) { if (!lastTranslation) return toast('暂无译文'); insertText(lastTranslation); return toast('译文已插入'); }
+    const cand = t.closest('.cand'); if (cand) return commit(cand.textContent);
+    const key = t.closest('.key'); if (key) return handleKey(key);
+    const vb = t.closest('[data-view]'); if (vb) return openView(vb.dataset.view);
+    const ob = t.closest('[data-open]'); if (ob) return openSheet(ob.dataset.open === 'wordbook' ? 'wordbook' : '');
+    if (t.closest('#clipAdd')) { addClip($('#clipInput').value); $('#clipInput').value = ''; return; }
+    if (t.closest('#clipClear')) { clips = []; store('kf_clips_v2', clips); renderClips(); return toast('剪贴板已清空'); }
+    const del = t.closest('.clip-del'); if (del) { clips.splice(+del.dataset.del, 1); store('kf_clips_v2', clips); renderClips(); return; }
+    const item = t.closest('.clip-item'); if (item) { const c = clips[+item.dataset.i]; if (c) { insertText(c.t); toast('已粘贴到文稿'); } return; }
+    const em = t.closest('.emoji-grid button'); if (em) return insertText(em.textContent);
+    if (t.closest('#hwUndo')) { strokes.pop(); drawHw(); return; }
+    if (t.closest('#hwClear')) return hwClear();
+    if (t.closest('#hwRecognize')) return hwRecognize();
+    const hc = t.closest('.hw-char'); if (hc) { insertText(hc.textContent); toast(`「${hc.textContent}」已上屏`); return; }
+  });
+
+  // 功能菜单
+  funcMask.addEventListener('click', closeFuncMenu);
+  funcMenu.addEventListener('click', e => {
+    const t = e.target;
+    closeFuncMenu();
+    if (t.closest('#fmLang')) return toggleLang();
+    if (t.closest('#fmTranslate')) return toggleTranslate();
+    if (t.closest('#fmCollapse')) return setCollapsed(true);
+    const vb = t.closest('[data-view]'); if (vb) return openView(vb.dataset.view);
+    const ob = t.closest('[data-open]'); if (ob) return openSheet(ob.dataset.open === 'wordbook' ? 'wordbook' : '');
+  });
+
+  // 设置面板
+  $('#sheetDone').addEventListener('click', closeSheet);
+  sheetMask.addEventListener('click', closeSheet);
+  $('#heightRange').addEventListener('input', e => setHeight(+e.target.value));
+  $('#heightRange').addEventListener('change', saveSettings);
+  function bindSwitch(id, key, after) {
+    $('#' + id).addEventListener('click', () => { state[key] = !state[key]; syncSwitch(id, state[key]); saveSettings(); if (after) after(state[key]); });
+  }
+  bindSwitch('swHaptic', 'haptic', on => { if (on) feedback(); toast(on ? '输入震动已开启' : '输入震动已关闭'); });
+  bindSwitch('swSound', 'sound', on => { if (on) playTick(); toast(on ? '按键音效已开启' : '按键音效已关闭'); });
+  bindSwitch('swLight', 'light', on => { screen.classList.toggle('light', on); drawHw(); toast(on ? '已切换浅色外观' : '已切换深色磨砂按键'); });
+  bindSwitch('swTranslate', 'translate', on => toggleTranslate(on));
+  bindSwitch('swCollapseCand', 'keepCand', () => { syncCandidateBar(); toast(state.keepCand ? '收起键盘后将保留预选词' : '收起键盘时不再显示预选词'); });
+  $('#segDirection').addEventListener('click', e => {
+    const b = e.target.closest('button[data-dir]'); if (!b) return;
+    state.direction = b.dataset.dir; $$('#segDirection button').forEach(x => x.classList.toggle('on', x === b));
+    updateTranslation(); saveSettings();
+  });
+  $('#wbFile').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { $('#wbArea').value = String(rd.result).slice(0, 20000); importWords($('#wbArea').value); };
+    rd.readAsText(f, 'utf-8'); e.target.value = '';
+  });
+  $('#wbImport').addEventListener('click', () => importWords($('#wbArea').value));
+  $('#wbExport').addEventListener('click', exportWords);
+  $('#wbClear').addEventListener('click', () => { userWords = []; store('kf_words_v2', userWords); updateStats(); renderCandidates(); toast('用户词库已清空'); });
+
+  // 应用视图
+  $('#navBack').addEventListener('click', () => toast('KeyFlow 交互原型 · 非真实导航'));
+  $('#navDone').addEventListener('click', () => { editor.blur(); toast('文稿已保存（演示）'); });
+  $('#footClear').addEventListener('click', () => { editor.value = ''; sel.s = sel.e = 0; onEditorChange(); toast('文稿已清空'); });
+  $('#footCopy').addEventListener('click', () => addClip(editor.value || '（空文稿）'));
+
+  // 拖动调节高度
+  const grip = $('#grip');
+  grip.addEventListener('pointerdown', e => {
+    e.preventDefault(); grip.setPointerCapture(e.pointerId);
+    const y0 = e.clientY, h0 = state.kbHeight;
+    const move = ev => setHeight(h0 + (y0 - ev.clientY));
+    const up = () => { grip.removeEventListener('pointermove', move); saveSettings(); toast(`键盘高度：${state.kbHeight} px`); };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', up, { once: true });
+    grip.addEventListener('pointercancel', up, { once: true });
+  });
+
+  // 左侧功能卡片联动
+  $('#featList').addEventListener('click', e => {
+    const b = e.target.closest('.feat'); if (!b) return;
+    const a = b.dataset.act; closeSheet(); closeFuncMenu();
+    if (a === 'clipboard') { openView('clipboard'); toast('剪贴板：点击任意条目即可粘贴'); }
+    else if (a === 'collapse') setCollapsed(!state.collapsed);
+    else if (a === 'translate') { if (!state.translate) toggleTranslate(true); else toast('边写边译已开启 · 在文稿中输入试试'); }
+    else if (a === 'handwrite') { openView('handwrite'); toast('手写找字：在画布上写字后点「识别」'); }
+    else if (a === 'height') { openSheet('height'); toast('拖动键盘顶部横条，或用滑块调节高度'); }
+    else if (a === 'haptic') { if (!state.haptic) { state.haptic = true; syncSwitch('swHaptic', true); saveSettings(); } feedback(); toast('输入震动已开启 · 点按键盘体验反馈'); }
+    else if (a === 'wordbook') { openSheet('wordbook'); toast('词库导入：支持 TXT / JSON / CSV'); }
+  });
+
+  /* ---------- 设备自适应 + 时钟 ---------- */
+  function fitDevice() {
+    // 真机 App 内：隐藏模拟器外框，界面铺满屏幕，状态栏与安全区交给系统
+    if (window.KeyFlowNative) { document.body.classList.add('native'); return; }
+    const wrap = $('#deviceWrap');
+    const s = Math.min(1, (window.innerHeight - 28) / 896, (window.innerWidth - 28) / 414);
+    wrap.style.width = (414 * s) + 'px'; wrap.style.height = (896 * s) + 'px';
+    const dev = $('.device'); dev.style.transformOrigin = 'top left'; dev.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fitDevice);
+  function two(n) { return n < 10 ? '0' + n : '' + n; }
+  function tickClock() { const d = new Date(); $('#clock').textContent = d.getHours() + ':' + two(d.getMinutes()); }
+  setInterval(tickClock, 30000);
+
+  /* ---------- 初始化 ---------- */
+  editor.value = '你好，今天天气很好。'; sel.s = sel.e = editor.value.length;
+  screen.classList.toggle('light', !!state.light);
+  setHeight(state.kbHeight); $('#heightRange').value = state.kbHeight;
+  const SW_IDS = { haptic: 'swHaptic', sound: 'swSound', light: 'swLight', translate: 'swTranslate', keepCand: 'swCollapseCand' };
+  Object.keys(SW_IDS).forEach(k => syncSwitch(SW_IDS[k], state[k]));
+  $$('#segDirection button').forEach(b => b.classList.toggle('on', b.dataset.dir === state.direction));
+  renderKeys(); renderCandidates(); renderClips(); renderEmoji(); updateStats(); onEditorChange(); syncFuncMenu();
+  $('#docMeta').textContent = '今天 ' + new Date().getHours() + ':' + two(new Date().getMinutes());
+  tickClock(); fitDevice(); setTimeout(initCanvas, 60);
+})();
+
+</script>
+</body>
+</html>

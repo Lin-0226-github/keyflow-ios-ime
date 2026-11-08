@@ -1,0 +1,114 @@
+name: Build IPA (unsigned)
+
+# 与 GhostProtocol-iOS 相同的云端编译流程：XcodeGen 生成工程 -> xcodebuild 编译 -> 打包未签名 IPA
+# 不需要证书 / Apple 账号；下载 IPA 后用 Sideloadly / AltStore 自签即可装进 iPhone。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+    paths:
+      - 'ios/**'
+      - 'src/**'
+      - 'build.mjs'
+      - '.github/workflows/build-ipa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-14
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 编译内置网页
+        run: node build.mjs
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcode-select -p
+          sw_vers
+
+      - name: Install XcodeGen
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen
+          fi
+          xcodegen --version
+
+      - name: Generate Xcode project
+        run: |
+          cd ios
+          xcodegen generate --spec project.yml
+          PBX=KeyFlow.xcodeproj/project.pbxproj
+          echo "XcodeGen 生成格式: $(grep -m1 -oE 'objectVersion = [0-9]+' "$PBX" || echo '未找到')"
+          # 新版 XcodeGen 会输出 Xcode16 格式(77)，CI 上的 Xcode 15.4 读不了，统一降到 56
+          perl -pi -e 's/objectVersion = \d+;/objectVersion = 56;/g; s/LastUpgradeCheck = \d+;/LastUpgradeCheck = 1400;/g' "$PBX"
+          echo "降级后格式:     $(grep -m1 -oE 'objectVersion = [0-9]+' "$PBX")"
+
+      - name: Build
+        run: |
+          set -o pipefail
+          cd ios
+          xcodebuild \
+            -project KeyFlow.xcodeproj \
+            -scheme KeyFlow \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="$(find ios/build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -n 1)"
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::没有找到 .app 产物，构建可能失败"
+            ls -R ios/build/Build/Products || true
+            exit 1
+          fi
+          echo "产物路径: $APP_PATH"
+          rm -rf Payload out
+          mkdir -p Payload out
+          cp -R "$APP_PATH" Payload/
+          /usr/bin/zip -qry out/KeyFlow-unsigned.ipa Payload
+          ls -lh out/KeyFlow-unsigned.ipa
+          unzip -l out/KeyFlow-unsigned.ipa | head -n 15
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeyFlow-unsigned-ipa
+          path: out/KeyFlow-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### KeyFlow 构建结果"
+            echo ""
+            if [ -f out/KeyFlow-unsigned.ipa ]; then
+              echo "- 产物：\`KeyFlow-unsigned.ipa\`（$(du -h out/KeyFlow-unsigned.ipa | cut -f1)）"
+              echo "- 类型：**未签名**，用 Sideloadly / AltStore 自签后安装到 iPhone"
+              echo "- 下载：本页底部 Artifacts → \`KeyFlow-unsigned-ipa\`"
+            else
+              echo "- 构建失败，请查看上方日志"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

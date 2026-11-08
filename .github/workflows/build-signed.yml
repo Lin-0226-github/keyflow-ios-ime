@@ -1,0 +1,112 @@
+name: Build IPA (signed)
+
+# 可选：有 Apple 开发者账号时，配置 Secrets 后手动触发，产出已签名 IPA（不会 7 天掉签）。
+# Settings → Secrets and variables → Actions 需要：
+#   BUILD_CERTIFICATE_BASE64 / P12_PASSWORD / KEYCHAIN_PASSWORD
+#   PROVISIONING_PROFILE_BASE64 / TEAM_ID
+#   Variables（可选）BUNDLE_ID，默认 com.keyflow.ime
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_method:
+        description: "导出方式（ad-hoc 需把设备 UDID 加进描述文件）"
+        required: true
+        default: "ad-hoc"
+        type: choice
+        options: [ad-hoc, development, app-store-connect]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build signed IPA
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      CERT_B64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      CERT_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      PROFILE_B64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+      BUNDLE_ID: ${{ vars.BUNDLE_ID || 'com.keyflow.ime' }}
+      EXPORT_METHOD: ${{ inputs.export_method }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node build.mjs
+
+      - name: Check secrets
+        run: |
+          missing=0
+          for name in CERT_B64 CERT_PASSWORD KEYCHAIN_PASSWORD PROFILE_B64 TEAM_ID; do
+            if [ -z "${!name}" ]; then echo "::error::缺少 secret: $name"; missing=1; fi
+          done
+          [ "$missing" -eq 0 ] || { echo "请先配置证书 Secrets，或改用 Build IPA (unsigned)"; exit 1; }
+
+      - name: Install XcodeGen
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen; fi
+          xcodegen --version
+
+      - name: Generate Xcode project
+        run: cd ios && xcodegen generate --spec project.yml
+
+      - name: Import certificate and profile
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          python3 -c 'import base64,os,sys; open(sys.argv[1],"wb").write(base64.b64decode(os.environ["CERT_B64"]))' "$CERT_PATH"
+          python3 -c 'import base64,os,sys; open(sys.argv[1],"wb").write(base64.b64decode(os.environ["PROFILE_B64"]))' "$PROFILE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PROFILE_PATH" ~/Library/MobileDevice/Provisioning\ Profiles/
+          PROFILE_UUID=$(security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c 'Print :UUID' /dev/stdin)
+          echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+
+      - name: Archive
+        run: |
+          set -euo pipefail
+          cd ios
+          xcodebuild archive \
+            -project KeyFlow.xcodeproj -scheme KeyFlow -configuration Release \
+            -sdk iphoneos -archivePath build/KeyFlow.xcarchive \
+            DEVELOPMENT_TEAM="$TEAM_ID" CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID"
+
+      - name: Export IPA
+        run: |
+          set -euo pipefail
+          EXPORT_PLIST="$RUNNER_TEMP/ExportOptions.plist"
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict/></plist>\n' > "$EXPORT_PLIST"
+          PB=/usr/libexec/PlistBuddy
+          "$PB" -c "Add :method string ${EXPORT_METHOD}" "$EXPORT_PLIST"
+          "$PB" -c "Add :teamID string ${TEAM_ID}" "$EXPORT_PLIST"
+          "$PB" -c "Add :signingStyle string manual" "$EXPORT_PLIST"
+          "$PB" -c "Add :provisioningProfiles dict" "$EXPORT_PLIST"
+          "$PB" -c "Add :provisioningProfiles:${BUNDLE_ID} string ${PROFILE_UUID}" "$EXPORT_PLIST"
+          xcodebuild -exportArchive -archivePath ios/build/KeyFlow.xcarchive \
+            -exportOptionsPlist "$EXPORT_PLIST" -exportPath out
+          ls -lh out
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeyFlow-signed-ipa
+          path: out/*.ipa
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Clean up keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true

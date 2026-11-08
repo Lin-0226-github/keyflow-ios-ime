@@ -1,0 +1,82 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: keyflow-pages
+  cancel-in-progress: false
+
+jobs:
+  # 1) 编译：源码语法检查 -> 内联构建 -> 产物校验 -> 同步性检查
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 校验 JS 源码语法
+        run: node --check src/data.js && node --check src/app.js
+      - name: 编译单文件成品
+        run: node build.mjs
+      - name: 校验构建产物
+        run: python3 scripts/verify_build.py
+      - name: 检查源码与产物同步
+        run: git diff --exit-code -- index.html ios/Web/index.html
+      - name: 上传编译产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyflow-index-html
+          path: index.html
+
+  # 2) 浏览器冒烟测试
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 安装 Playwright
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install playwright
+          python3 -m playwright install chromium
+      - name: 生成产物
+        run: node build.mjs
+      - name: 运行交互冒烟测试
+        run: python3 scripts/smoke.py
+
+  # 3) 部署 GitHub Pages（仅 main / 手动触发）
+  deploy:
+    needs: [build, smoke]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 编译站点
+        run: node build.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

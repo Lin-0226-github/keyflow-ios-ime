@@ -1,0 +1,291 @@
+/* ============ KeyFlow · iOS 深色磨砂键盘（按参考图按键设计重做） ============ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  background: radial-gradient(1000px 700px at 12% 8%, #23243d 0%, transparent 60%),
+              radial-gradient(900px 700px at 88% 92%, #2c2036 0%, transparent 60%), #0a0b11;
+  color: #f2f2f7; overflow: hidden;
+}
+.page { height: 100%; display: flex; align-items: center; justify-content: center; gap: 54px; padding: 20px; }
+
+/* ---------- 左侧说明 ---------- */
+.showcase { width: 344px; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 13px; }
+.brand-logo { width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center; font-size: 25px; font-weight: 700; color: #fff;
+  background: linear-gradient(145deg, #6d7c93, #3a465c); box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.28); }
+.brand h1 { font-size: 25px; margin: 0; letter-spacing: -.4px; }
+.brand p { margin: 3px 0 0; font-size: 11px; color: #8e97ad; letter-spacing: 1.8px; text-transform: uppercase; }
+.tagline { margin: 20px 0 20px; font-size: 13px; line-height: 1.8; color: #aab2c6; }
+.tagline b { color: #fff; font-weight: 600; }
+.feat-list { display: grid; gap: 8px; }
+.feat { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 13px; width: 100%; text-align: left;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); color: inherit; font: inherit; cursor: pointer; transition: .18s; }
+.feat:hover { background: rgba(255,255,255,.12); transform: translateX(4px); border-color: rgba(150,180,255,.32); }
+.feat-ic { width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center; background: rgba(255,255,255,.12); color: #cfd8ee; }
+.feat-ic .ic { width: 18px; height: 18px; }
+.feat-tx { min-width: 0; }
+.feat-tx strong { display: block; font-size: 13px; font-weight: 600; }
+.feat-tx span { display: block; font-size: 11px; color: #858ea5; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feat-arrow { margin-left: auto; color: #5c647c; font-size: 16px; }
+.foot-hint { margin-top: 18px; font-size: 11px; line-height: 1.8; color: #6b7390; }
+.foot-hint kbd { background: rgba(255,255,255,.1); border-radius: 4px; padding: 1px 5px; }
+
+/* ---------- 设备 ---------- */
+.device-wrap { flex-shrink: 0; position: relative; }
+.device { position: absolute; top: 0; left: 0; width: 414px; height: 896px; padding: 10px; border-radius: 50px;
+  background: linear-gradient(145deg, #50535b, #17181d 35%, #0c0d11 70%, #3c3f47);
+  box-shadow: 0 40px 90px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.1), inset 0 0 0 1px rgba(0,0,0,.6); }
+.device::before, .device::after { content: ""; position: absolute; left: -3px; width: 3px; border-radius: 3px 0 0 3px; background: #34373e; }
+.device::before { top: 132px; height: 32px; } .device::after { top: 190px; height: 64px; }
+.side-btn { position: absolute; right: -3px; width: 3px; height: 90px; top: 200px; border-radius: 0 3px 3px 0; background: #34373e; }
+
+.screen {
+  width: 100%; height: 100%; border-radius: 41px; overflow: hidden; position: relative;
+  display: flex; flex-direction: column; color: var(--ink);
+  --kb-bg: rgba(24,22,23,.40); --key-bg: rgba(255,255,255,.27); --key-fn: rgba(255,255,255,.15);
+  --key-return: rgba(255,255,255,.17); --key-shadow: rgba(0,0,0,.34);
+  --ink: #f7f7f9; --sub: rgba(235,235,245,.55); --bar: rgba(38,36,39,.78);
+  --sep: rgba(255,255,255,.12); --accent: #0a84ff; --panel: rgba(255,255,255,.10);
+  --card: rgba(255,255,255,.08); --app-bg: rgba(16,16,20,.34); --kb-h: 226px;
+}
+.screen.light {
+  --kb-bg: rgba(214,216,222,.80); --key-bg: rgba(255,255,255,.95); --key-fn: rgba(172,177,188,.9);
+  --key-return: rgba(182,186,195,.9); --key-shadow: rgba(0,0,0,.18);
+  --ink: #1c1c1e; --sub: #7c7c82; --bar: rgba(240,240,244,.92);
+  --sep: rgba(60,60,67,.16); --accent: #007aff; --panel: #fff;
+  --card: #e9e9ee; --app-bg: rgba(255,255,255,.82);
+}
+/* 模糊渐变壁纸：让磨砂键盘有可透的底色（不复制截图上半部分内容） */
+.wallpaper { position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(85% 45% at 12% 12%, rgba(92,62,108,.78), transparent 65%),
+    radial-gradient(70% 40% at 92% 26%, rgba(38,96,92,.62), transparent 65%),
+    radial-gradient(90% 48% at 22% 62%, rgba(128,74,48,.60), transparent 68%),
+    radial-gradient(80% 45% at 88% 88%, rgba(44,74,96,.55), transparent 68%),
+    linear-gradient(165deg, #1b1822 0%, #171c20 42%, #2a1d1a 100%);
+}
+.wallpaper::after { content: ""; position: absolute; inset: -10%; background: radial-gradient(60% 40% at 55% 50%, rgba(150,105,70,.28), transparent 70%); filter: blur(40px); }
+.notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 156px; height: 30px; border-radius: 0 0 20px 20px; background: #000; z-index: 60; }
+
+/* 状态栏 */
+.statusbar { height: 46px; flex-shrink: 0; position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 0 27px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.status-time { width: 60px; }
+.status-icons { display: flex; align-items: center; gap: 6px; }
+.status-icons svg { height: 12px; width: auto; fill: var(--ink); color: var(--ink); }
+.status-icons .bat { fill: #32d74b; }
+
+/* ---------- 文稿区 ---------- */
+.appview { flex: 1; min-height: 0; position: relative; z-index: 2; display: flex; flex-direction: column; background: var(--app-bg); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--ink); }
+.navbar { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--sep); }
+.nav-btn { color: var(--accent); font-size: 15px; background: none; border: 0; padding: 6px 2px; cursor: pointer; font-family: inherit; }
+.nav-title { font-size: 15px; font-weight: 600; }
+.doc-meta { text-align: center; font-size: 11px; color: var(--sub); padding: 12px 0 4px; }
+.editor-wrap { flex: 1; min-height: 0; padding: 4px 22px 10px; display: flex; }
+#editor { flex: 1; width: 100%; resize: none; border: 0; outline: none; background: transparent; color: var(--ink);
+  font-family: inherit; font-size: 17px; line-height: 1.75; padding: 0; caret-color: var(--accent); }
+#editor::placeholder { color: var(--sub); opacity: .8; }
+.app-foot { height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 11px; color: var(--sub); border-top: 1px solid var(--sep); }
+.app-foot .ic { width: 15px; height: 15px; cursor: pointer; }
+
+/* ---------- 输入法容器（磨砂玻璃） ---------- */
+.ime { flex-shrink: 0; position: relative; z-index: 3; display: flex; flex-direction: column; color: var(--ink);
+  background: var(--kb-bg); -webkit-backdrop-filter: blur(26px) saturate(150%); backdrop-filter: blur(26px) saturate(150%);
+  border-top: 1px solid rgba(255,255,255,.07); }
+.grip { height: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: ns-resize; touch-action: none; }
+.grip-bar { width: 40px; height: 4px; border-radius: 3px; background: var(--sub); opacity: .5; }
+.grip:hover .grip-bar { opacity: .9; }
+
+/* 边写边译条 */
+.translate-bar { display: none; align-items: center; gap: 8px; padding: 7px 10px; flex-shrink: 0; background: rgba(10,132,255,.14); border-bottom: 1px solid var(--sep); }
+.translate-bar.on { display: flex; }
+.tr-badge { font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); padding: 3px 6px; border-radius: 5px; white-space: nowrap; }
+.tr-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.35; max-height: 34px; overflow: hidden; }
+.tr-acts { display: flex; gap: 5px; }
+.tr-acts button { border: 0; background: rgba(255,255,255,.14); color: var(--accent); font-size: 11px; padding: 5px 7px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+
+/* 候选词栏：默认隐藏，输入拼音 / 收起键盘时出现 */
+.candidate-bar { display: none; height: 44px; flex-shrink: 0; align-items: stretch; border-bottom: 1px solid var(--sep); }
+.candidate-bar.on { display: flex; }
+.pinyin-box { min-width: 58px; max-width: 100px; padding: 0 8px 0 12px; display: flex; align-items: center; font-size: 14px; color: #7db8ff; letter-spacing: .3px; border-right: 1px solid var(--sep); overflow: hidden; white-space: nowrap; }
+.pinyin-box:empty { display: none; }
+.cand-scroll { flex: 1; min-width: 0; display: flex; align-items: stretch; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.cand-scroll::-webkit-scrollbar { display: none; }
+.cand { position: relative; flex-shrink: 0; display: flex; align-items: center; padding: 0 15px; font-size: 18px; cursor: pointer; white-space: nowrap; }
+.cand::after { content: ""; position: absolute; right: 0; top: 11px; bottom: 11px; width: 1px; background: var(--sep); }
+.cand:last-child::after { display: none; }
+.cand:active { background: rgba(255,255,255,.12); }
+.cand.first { color: #8fc0ff; font-weight: 600; }
+.cand-empty { display: flex; align-items: center; padding-left: 14px; font-size: 12px; color: var(--sub); }
+.cand-collapse { flex-shrink: 0; width: 42px; display: grid; place-items: center; border-left: 1px solid var(--sep); cursor: pointer; color: var(--sub); }
+.cand-collapse .ic { width: 18px; height: 18px; }
+
+.collapse-tip { display: none; height: 26px; flex-shrink: 0; align-items: center; justify-content: center; gap: 6px; font-size: 11px; color: var(--sub); }
+.ime.collapsed .collapse-tip { display: flex; }
+.collapse-tip button { border: 0; background: none; color: #8fc0ff; font-size: 11px; font-family: inherit; cursor: pointer; font-weight: 600; }
+
+/* ---------- 键盘主体 ---------- */
+.keyboard-body { height: var(--kb-h); flex-shrink: 0; position: relative; overflow: hidden; transition: height .22s cubic-bezier(.32,.72,0,1); }
+.kview { position: absolute; inset: 0; display: none; flex-direction: column; padding: 8px 4px 4px; }
+.kview.show { display: flex; }
+.krow { display: flex; gap: 6px; margin: 0 0 11px; flex: 1; min-height: 0; }
+.krow:last-child { margin-bottom: 0; }
+.key { flex: 1; min-width: 0; border: 0; border-radius: 8px; background: var(--key-bg); color: var(--ink);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 var(--key-shadow); font-family: inherit; font-size: 24px; font-weight: 400;
+  display: grid; place-items: center; cursor: pointer; user-select: none; position: relative;
+  transition: transform .06s, background .09s; }
+.key:active, .key.pressed { background: rgba(255,255,255,.46); transform: scale(.955); }
+.screen.light .key:active, .screen.light .key.pressed { background: #e2e4e9; }
+.key.fn { background: var(--key-fn); font-size: 14px; }
+.key.fn .ic { width: 23px; height: 23px; }
+.key.fn:active, .key.fn.pressed { background: rgba(255,255,255,.42); }
+.key.wide { flex: 1.45; }
+.key.return { flex: 2; background: var(--key-return); font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.key.return .ic { width: 15px; height: 15px; }
+.key.space { flex: 4.4; font-size: 15px; }
+.key.k2 { font-size: 15px; }
+.key.special { font-size: 19px; }
+.key .lbl { font-size: 15px; }
+.key.shift-on { background: rgba(255,255,255,.75); color: #1c1c1e; }
+.screen.light .key.shift-on { background: #fff; color: #1c1c1e; }
+.key-row3 { padding: 0 1px; }
+
+/* 底部地球 / 麦克风行（参考图） */
+.bottom-row { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+.bottom-row button { border: 0; background: none; color: var(--ink); opacity: .92; cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center; }
+.bottom-row button:active { background: rgba(255,255,255,.12); }
+.bottom-row .ic { width: 25px; height: 25px; }
+.bottom-row .mic-listening { color: #ff453a; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .4; } }
+.home-bar { height: 14px; flex-shrink: 0; display: grid; place-items: center; }
+.home-bar i { width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; }
+
+.ime.collapsed .keyboard-body { height: 0 !important; }
+.ime.collapsed .grip { display: none; }
+.ime.collapsed .bottom-row { display: none; }
+
+/* ---------- 功能菜单（由地球键唤出） ---------- */
+.func-mask { position: absolute; inset: 0; z-index: 70; background: rgba(0,0,0,.38); display: none; }
+.func-mask.show { display: block; }
+.func-menu { position: absolute; left: 12px; right: 12px; bottom: 66px; z-index: 71; padding: 14px 12px 12px;
+  border-radius: 20px; background: rgba(48,47,52,.92); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,.12); box-shadow: 0 20px 50px rgba(0,0,0,.5); color: #fff; display: none; }
+.screen.light .func-menu { background: rgba(246,246,250,.94); color: #1c1c1e; border-color: rgba(0,0,0,.08); }
+.func-menu.show { display: block; }
+.func-menu h4 { margin: 0 0 12px 4px; font-size: 12px; font-weight: 600; opacity: .6; }
+.func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.func-item { border: 0; background: rgba(255,255,255,.09); color: inherit; border-radius: 12px; padding: 10px 2px 8px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: inherit; font-size: 10.5px; }
+.screen.light .func-item { background: rgba(0,0,0,.05); }
+.func-item:active { background: rgba(255,255,255,.2); }
+.func-item .ic { width: 21px; height: 21px; }
+.func-item.on { background: rgba(10,132,255,.3); color: #9dc9ff; }
+.func-hint { margin: 11px 4px 0; font-size: 10.5px; line-height: 1.5; opacity: .55; }
+
+/* ---------- 面板：剪贴板 / 手写 / 表情 ---------- */
+.panel { position: absolute; left: 0; right: 0; top: 12px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
+/* 面板模式自动加高键盘区，给手写画布 / 剪贴板列表更多空间（不改动用户设置的高度） */
+.ime.panel-mode .keyboard-body { height: 292px !important; }
+.panel.show { display: flex; }
+.panel.panel-inline { position: relative; inset: auto; top: auto; right: auto; bottom: auto; left: auto; z-index: auto; flex: 1; min-height: 0; background: transparent; }
+.panel-head { height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--sep); }
+.panel-head strong { font-size: 13px; }
+.panel-head .acts { display: flex; gap: 8px; }
+.panel-head button { border: 0; background: none; color: var(--accent); font-size: 12px; font-family: inherit; cursor: pointer; padding: 4px; }
+.panel-tabs { height: 38px; flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 0 6px; border-bottom: 1px solid var(--sep); }
+.panel-tabs button { flex: 1; min-width: 0; border: 0; background: none; color: var(--sub); font-size: 9.5px; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border-radius: 7px; padding: 3px 0; cursor: pointer; }
+.panel-tabs button .ic { width: 16px; height: 16px; }
+.panel-tabs button.active { color: var(--accent); background: rgba(10,132,255,.16); }
+.panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 10px; }
+
+.clip-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 11px; border-radius: 10px; background: var(--panel); margin-bottom: 8px; cursor: pointer; }
+.clip-item:active { background: rgba(255,255,255,.18); }
+.clip-item .ic { width: 17px; height: 17px; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.clip-tx { flex: 1; min-width: 0; font-size: 13px; line-height: 1.45; word-break: break-all; }
+.clip-time { font-size: 10px; color: var(--sub); margin-top: 3px; }
+.clip-del { border: 0; background: none; cursor: pointer; padding: 2px; }
+.clip-del .ic { width: 14px; height: 14px; color: var(--sub); }
+.clip-empty { text-align: center; color: var(--sub); font-size: 12px; padding: 40px 0; }
+.clip-add { display: flex; gap: 8px; margin-bottom: 10px; }
+.clip-add input { flex: 1; min-width: 0; border: 1px solid var(--sep); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 8px 10px; font-size: 12px; font-family: inherit; outline: none; }
+.clip-add button { border: 0; background: var(--accent); color: #fff; border-radius: 8px; padding: 0 12px; font-size: 12px; font-family: inherit; cursor: pointer; }
+
+.hw-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 8px 10px 6px; }
+.hw-canvas-box { flex: 1; min-height: 0; width: 100%; max-width: 262px; align-self: center; position: relative; border-radius: 12px; background: var(--panel); overflow: hidden; border: 1px solid var(--sep); }
+#hwCanvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+.hw-placeholder { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; color: var(--sub); opacity: .28; font-size: 58px; font-weight: 300; }
+.hw-tools { display: flex; align-items: center; gap: 6px; margin-top: 8px; flex-shrink: 0; }
+.hw-btn { border: 0; background: var(--panel); color: var(--ink); border-radius: 8px; padding: 8px 10px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.hw-btn.primary { background: var(--accent); color: #fff; flex: 1; font-weight: 600; }
+.hw-result { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; flex-shrink: 0; scrollbar-width: none; min-height: 46px; }
+.hw-char { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; background: var(--panel); border: 1px solid var(--sep); font-size: 22px; display: grid; place-items: center; cursor: pointer; }
+.hw-char:active { background: var(--accent); color: #fff; }
+.hw-hint { font-size: 10.5px; color: var(--sub); text-align: center; padding-bottom: 2px; }
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.emoji-grid button { border: 0; background: none; font-size: 25px; padding: 5px 0; cursor: pointer; border-radius: 6px; }
+.emoji-grid button:active { background: rgba(255,255,255,.14); }
+
+/* ---------- 设置面板 ---------- */
+.sheet-mask { position: absolute; inset: 0; z-index: 80; background: rgba(0,0,0,.45); display: none; }
+.sheet-mask.show { display: block; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 81; max-height: 88%; background: var(--bar);
+  -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 20px 20px 0 0; color: var(--ink);
+  transform: translateY(100%); transition: transform .28s cubic-bezier(.32,.72,0,1); display: flex; flex-direction: column; }
+.sheet.show { transform: translateY(0); }
+.sheet-head { height: 52px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid var(--sep); }
+.sheet-head strong { font-size: 16px; }
+.sheet-head button { border: 0; background: rgba(10,132,255,.2); color: #8fc0ff; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 14px; cursor: pointer; font-family: inherit; }
+.screen.light .sheet-head button { color: var(--accent); }
+.sheet-scroll { overflow-y: auto; padding: 14px 14px 26px; }
+.group { background: var(--panel); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.group-title { font-size: 11px; text-transform: uppercase; color: var(--sub); padding: 0 4px 7px; letter-spacing: .4px; }
+.row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-bottom: 1px solid var(--sep); min-height: 46px; }
+.row:last-child { border-bottom: 0; }
+.row-ic { width: 27px; height: 27px; border-radius: 7px; display: grid; place-items: center; color: #fff; flex-shrink: 0; background: var(--accent); }
+.row-ic .ic { width: 16px; height: 16px; }
+.row-main { flex: 1; min-width: 0; }
+.row-main strong { display: block; font-size: 13.5px; font-weight: 500; }
+.row-main span { display: block; font-size: 11px; color: var(--sub); margin-top: 2px; line-height: 1.4; }
+.switch { width: 49px; height: 29px; border-radius: 20px; background: rgba(120,120,128,.4); border: 0; padding: 2px; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+.switch i { display: block; width: 25px; height: 25px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.switch.on { background: #34c759; } .switch.on i { transform: translateX(20px); }
+.range-row { padding: 8px 13px 14px; }
+.range-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); margin-bottom: 8px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.seg { display: flex; background: rgba(120,120,128,.2); border-radius: 8px; padding: 2px; }
+.seg button { flex: 1; border: 0; background: none; color: var(--ink); font-size: 11.5px; padding: 6px 4px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.seg button.on { background: var(--panel); box-shadow: 0 1px 3px rgba(0,0,0,.16); font-weight: 600; }
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 13px 13px; }
+.stat { background: var(--card); border-radius: 9px; padding: 9px 6px; text-align: center; }
+.stat b { display: block; font-size: 17px; color: #8fc0ff; } .stat span { font-size: 10px; color: var(--sub); }
+.screen.light .stat b { color: var(--accent); }
+.wb-area { width: 100%; height: 62px; border: 1px solid var(--sep); border-radius: 8px; background: var(--panel); color: var(--ink); padding: 8px; font-size: 11px; font-family: inherit; resize: none; outline: none; }
+.wb-btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.wb-btns button, .file-label { border: 0; background: var(--accent); color: #fff; font-size: 12px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+.wb-btns button.ghost { background: rgba(120,120,128,.24); color: var(--ink); }
+.file-label .ic { width: 14px; height: 14px; }
+.wb-preview { font-size: 11px; color: var(--sub); line-height: 1.6; margin-top: 8px; word-break: break-all; }
+#wbFile { display: none; }
+
+.toast { position: absolute; left: 50%; bottom: 25%; transform: translate(-50%, 10px); z-index: 120; background: rgba(28,28,30,.92); color: #fff;
+  font-size: 12.5px; padding: 10px 16px; border-radius: 20px; opacity: 0; pointer-events: none; transition: .25s; white-space: nowrap; max-width: 86%; overflow: hidden; text-overflow: ellipsis; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hidden { display: none !important; }
+@media (max-width: 1120px) { .showcase { display: none; } .page { gap: 0; } }
+
+/* ---------- 真机 App 沉浸模式（由 iOS 壳注入 window.KeyFlowNative 开启） ---------- */
+body.native .page { padding: 0; gap: 0; }
+body.native .showcase { display: none; }
+body.native .device-wrap { width: 100vw !important; height: 100vh !important; }
+body.native .device { position: relative !important; top: auto !important; left: auto !important;
+  width: 100% !important; height: 100% !important; padding: 0 !important; border-radius: 0 !important;
+  box-shadow: none !important; background: transparent !important; transform: none !important; }
+body.native .device::before, body.native .device::after, body.native .side-btn { display: none; }
+body.native .screen { border-radius: 0 !important; }
+body.native .notch, body.native .statusbar, body.native .home-bar { display: none; }
+body.native .appview { padding-top: env(safe-area-inset-top); }
+body.native .ime { padding-bottom: env(safe-area-inset-bottom); }
+body.native .wallpaper { border-radius: 0; }

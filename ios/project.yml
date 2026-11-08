@@ -1,0 +1,60 @@
+# XcodeGen 工程描述：本地执行 `xcodegen generate`，GitHub Actions 会自动执行
+# 与 GhostProtocol-iOS 相同的云端编译流程，产出未签名 IPA
+name: KeyFlow
+
+options:
+  bundleIdPrefix: com.keyflow
+  deploymentTarget:
+    iOS: "14.0"
+  # 锁定 Xcode 14 工程格式，兼容 macOS-14 runner 上的 Xcode 15/16
+  objectVersion: 56
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+    ENABLE_BITCODE: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    ALWAYS_SEARCH_USER_PATHS: NO
+    CLANG_ENABLE_MODULES: YES
+    SWIFT_COMPILATION_MODE: wholemodule
+    TARGETED_DEVICE_FAMILY: "1,2"
+
+targets:
+  KeyFlow:
+    type: application
+    platform: iOS
+    sources:
+      # Swift 源码 + 启动屏颜色资源
+      - path: App
+      # 内置单文件网页（由 build.mjs 从 src/ 编译生成）
+      - path: Web
+    settings:
+      base:
+        INFOPLIST_FILE: Supporting/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.keyflow.ime
+        PRODUCT_NAME: KeyFlow
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Automatic
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+
+schemes:
+  KeyFlow:
+    build:
+      targets:
+        KeyFlow: all
+    run:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

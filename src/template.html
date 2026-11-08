@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>KeyFlow · iOS 磨砂键盘输入法</title>
+<!-- __STYLE__ -->
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="ic-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M9 9h6M9 13h6M9 17h4"/></symbol>
+  <symbol id="ic-pen" viewBox="0 0 24 24"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20z"/><path d="M14.5 6.5l3 3"/></symbol>
+  <symbol id="ic-translate" viewBox="0 0 24 24"><path d="M3 5h9M7.5 3v2M9.5 5c0 4-2.5 7-6.5 8M6 9c1 2.5 3 4.5 5.5 5.5"/><path d="M13 20l4-10 4 10M14.4 17h5.2"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="ic-keyboard" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></symbol>
+  <symbol id="ic-keyboard-down" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="10" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 12h8M12 17v4M9 19l3 3 3-3"/></symbol>
+  <symbol id="ic-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></symbol>
+  <symbol id="ic-delete" viewBox="0 0 24 24"><path d="M9 5h11a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H9L2 12l7-7z"/><path d="M12 9l6 6M18 9l-6 6"/></symbol>
+  <symbol id="ic-shift" viewBox="0 0 24 24"><path d="M12 3l8 8h-4v7H8v-7H4l8-8z"/></symbol>
+  <symbol id="ic-emoji" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></symbol>
+  <symbol id="ic-book" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22V4.5z"/><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20"/></symbol>
+  <symbol id="ic-wave" viewBox="0 0 24 24"><path d="M3 12h2l2-5 3 10 3-13 3 16 2-8h3"/></symbol>
+  <symbol id="ic-height" viewBox="0 0 24 24"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/><path d="M4 12h16"/></symbol>
+  <symbol id="ic-import" viewBox="0 0 24 24"><path d="M12 3v11M8 10l4 4 4-4M4 17v3h16v-3"/></symbol>
+  <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+  <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3z"/></symbol>
+  <symbol id="ic-return" viewBox="0 0 24 24"><path d="M20 5v7a4 4 0 0 1-4 4H5"/><path d="M9 12l-4 4 4 4"/></symbol>
+  <symbol id="ic-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+  <symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
+  <symbol id="ic-lang" viewBox="0 0 24 24"><path d="M3 6h10M8 3v3M10 6c0 4-3 7-7 8M6 10c1 2 3 4 5 5"/><path d="M13 20l4-10 4 10M14.5 17h5"/></symbol>
+</defs></svg>
+
+<div class="page">
+  <aside class="showcase">
+    <div class="brand"><div class="brand-logo">K</div><div><h1>KeyFlow 输入法</h1><p>iOS Frosted Keyboard</p></div></div>
+    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距、底部地球 / 麦克风。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
+    <div class="feat-list" id="featList">
+      <button class="feat" data-act="clipboard"><span class="feat-ic"><svg class="ic"><use href="#ic-clipboard"/></svg></span><span class="feat-tx"><strong>剪贴板</strong><span>历史条目、一键粘贴、复制与清空</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="collapse"><span class="feat-ic"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span><span class="feat-tx"><strong>收起键盘预选词</strong><span>键盘收起后候选词仍可点选上屏</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="translate"><span class="feat-ic"><svg class="ic"><use href="#ic-translate"/></svg></span><span class="feat-tx"><strong>边写边译</strong><span>输入同时实时翻译，可替换或插入</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="handwrite"><span class="feat-ic"><svg class="ic"><use href="#ic-pen"/></svg></span><span class="feat-tx"><strong>手写找字</strong><span>手写笔迹识别，快速找到生僻字</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="height"><span class="feat-ic"><svg class="ic"><use href="#ic-height"/></svg></span><span class="feat-tx"><strong>键盘调节高度</strong><span>拖动顶部手柄或滑块自由调整</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="haptic"><span class="feat-ic"><svg class="ic"><use href="#ic-wave"/></svg></span><span class="feat-tx"><strong>输入震动</strong><span>按键触感、音效与按压动效反馈</span></span><span class="feat-arrow">›</span></button>
+      <button class="feat" data-act="wordbook"><span class="feat-ic"><svg class="ic"><use href="#ic-book"/></svg></span><span class="feat-tx"><strong>词库导入</strong><span>导入 TXT / JSON 词库，候选优先</span></span><span class="feat-arrow">›</span></button>
+    </div>
+    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左下角地球键打开功能菜单</div>
+  </aside>
+
+  <div class="device-wrap" id="deviceWrap">
+    <div class="device"><span class="side-btn"></span>
+      <div class="screen" id="screen">
+        <div class="wallpaper"></div>
+        <div class="notch"></div>
+
+        <div class="statusbar">
+          <span class="status-time" id="clock">9:41</span>
+          <span class="status-icons">
+            <svg viewBox="0 0 18 12"><path d="M1 9h2v3H1zM5 7h2v5H5zM9 4.5h2v7.5H9zM13 2h2v10h-2z"/></svg>
+            <svg viewBox="0 0 8 12"><circle cx="4" cy="2" r="1.3"/><circle cx="4" cy="10" r="1.3"/><path d="M4 3.5v5" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+            <svg viewBox="0 0 16 12"><path d="M8 10.6a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4zM4.6 7.2a4.8 4.8 0 0 1 6.8 0l1.2-1.3a6.6 6.6 0 0 0-9.2 0zM2 4.5a8.6 8.6 0 0 1 12 0l1.2-1.3a10.4 10.4 0 0 0-14.4 0z"/></svg>
+            <svg class="bat" viewBox="0 0 27 12"><path d="M11 1L8 6h4l-2 5 7-6h-4l2-4z"/><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".6"/><path d="M24 4v4a2.2 2.2 0 0 0 0-4z"/></svg>
+          </span>
+        </div>
+
+        <div class="appview">
+          <div class="navbar"><button class="nav-btn" id="navBack">‹ 备忘录</button><span class="nav-title">新建备忘录</span><button class="nav-btn" id="navDone">完成</button></div>
+          <div class="doc-meta" id="docMeta">今天 00:00</div>
+          <div class="editor-wrap"><textarea id="editor" spellcheck="false" placeholder="轻触此处开始输入…"></textarea></div>
+          <div class="app-foot"><span id="charCount">0 个字符</span><span style="display:flex;align-items:center;gap:12px">
+            <svg class="ic" id="footClear" title="清空文本"><use href="#ic-trash"/></svg>
+            <svg class="ic" id="footCopy" title="复制全文"><use href="#ic-copy"/></svg></span></div>
+        </div>
+
+        <!-- ========== 输入法 ========== -->
+        <div class="ime" id="ime">
+          <div class="grip" id="grip" title="上下拖动调节键盘高度"><span class="grip-bar"></span></div>
+
+          <div class="translate-bar" id="translateBar">
+            <span class="tr-badge" id="trBadge">中→英</span>
+            <span class="tr-text" id="trText">开始输入，译文将实时显示在这里…</span>
+            <span class="tr-acts"><button id="trReplace">替换</button><button id="trInsert">插入</button></span>
+          </div>
+
+          <div class="candidate-bar" id="candidateBar">
+            <div class="pinyin-box" id="pinyinBox"></div>
+            <div class="cand-scroll" id="candScroll"></div>
+            <div class="cand-collapse" id="btnCollapse" title="收起键盘（保留预选词）"><svg class="ic"><use href="#ic-chevron-down"/></svg></div>
+          </div>
+
+          <div class="collapse-tip">键盘已收起 · 预选词仍可点选 <button id="btnExpand">展开键盘</button></div>
+
+          <div class="keyboard-body" id="keyboardBody">
+            <div class="kview show" id="viewKeys"></div>
+            <div class="kview" id="viewEmoji">
+              <div class="panel panel-inline show">
+                <div class="panel-head"><strong>表情与符号</strong><div class="acts"><button data-view="keys">返回键盘</button></div></div>
+                <div class="panel-body"><div class="emoji-grid" id="emojiGrid"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="panelClipboard">
+            <div class="panel-head"><strong>剪贴板历史</strong><div class="acts"><button id="clipClear">清空</button><button data-view="keys">完成</button></div></div>
+            <div class="panel-tabs">
+              <button data-view="keys"><svg class="ic"><use href="#ic-keyboard"/></svg>键盘</button>
+              <button data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg>剪贴板</button>
+              <button data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg>手写</button>
+              <button data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg>表情</button>
+              <button data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg>词库</button>
+              <button data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg>设置</button>
+            </div>
+            <div class="panel-body">
+              <div class="clip-add"><input id="clipInput" placeholder="添加一条剪贴板内容…"><button id="clipAdd">添加</button></div>
+              <div id="clipList"></div>
+            </div>
+          </div>
+
+          <div class="panel" id="panelHandwrite">
+            <div class="panel-head"><strong>手写找字</strong><div class="acts"><button data-view="keys">返回键盘</button></div></div>
+            <div class="panel-tabs">
+              <button data-view="keys"><svg class="ic"><use href="#ic-keyboard"/></svg>键盘</button>
+              <button data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg>剪贴板</button>
+              <button data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg>手写</button>
+              <button data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg>表情</button>
+              <button data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg>词库</button>
+              <button data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg>设置</button>
+            </div>
+            <div class="hw-wrap">
+              <div class="hw-canvas-box"><canvas id="hwCanvas"></canvas><div class="hw-placeholder" id="hwPlaceholder">写</div></div>
+              <div class="hw-result" id="hwResult"></div>
+              <div class="hw-hint" id="hwHint">在上方区域手写汉字，点「识别」查找候选字</div>
+              <div class="hw-tools">
+                <button class="hw-btn" id="hwUndo">撤销</button><button class="hw-btn" id="hwClear">清空</button>
+                <button class="hw-btn primary" id="hwRecognize">识别</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部地球 / 麦克风（参考图） -->
+          <div class="bottom-row">
+            <button id="btnGlobe" title="功能菜单 / 切换键盘"><svg class="ic"><use href="#ic-globe"/></svg></button>
+            <button id="btnMic" title="语音输入（演示）"><svg class="ic"><use href="#ic-mic"/></svg></button>
+          </div>
+          <div class="home-bar"><i></i></div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="func-mask" id="funcMask"></div>
+        <div class="func-menu" id="funcMenu">
+          <h4>KeyFlow · 键盘功能</h4>
+          <div class="func-grid">
+            <button class="func-item" id="fmLang"><svg class="ic"><use href="#ic-lang"/></svg><span>中 / 英</span></button>
+            <button class="func-item" data-view="clipboard"><svg class="ic"><use href="#ic-clipboard"/></svg><span>剪贴板</span></button>
+            <button class="func-item" data-view="handwrite"><svg class="ic"><use href="#ic-pen"/></svg><span>手写找字</span></button>
+            <button class="func-item" id="fmTranslate"><svg class="ic"><use href="#ic-translate"/></svg><span>边写边译</span></button>
+            <button class="func-item" data-view="emoji"><svg class="ic"><use href="#ic-emoji"/></svg><span>表情</span></button>
+            <button class="func-item" data-open="wordbook"><svg class="ic"><use href="#ic-book"/></svg><span>词库</span></button>
+            <button class="func-item" data-open="settings"><svg class="ic"><use href="#ic-settings"/></svg><span>设置</span></button>
+            <button class="func-item" id="fmCollapse"><svg class="ic"><use href="#ic-keyboard-down"/></svg><span>收起键盘</span></button>
+          </div>
+          <div class="func-hint">按参考图按键配色绘制 · 拖动键盘顶部横条可调高度</div>
+        </div>
+
+        <!-- 设置面板 -->
+        <div class="sheet-mask" id="sheetMask"></div>
+        <div class="sheet" id="sheet">
+          <div class="sheet-head"><strong>输入法设置</strong><button id="sheetDone">完成</button></div>
+          <div class="sheet-scroll">
+            <div class="group-title">键盘与输入</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#ff9500"><svg class="ic"><use href="#ic-height"/></svg></span>
+                <div class="row-main"><strong>键盘高度</strong><span>也可直接拖动键盘顶部的小横条</span></div></div>
+              <div class="range-row"><div class="range-label"><span>紧凑</span><span id="heightVal">226 px</span><span>舒展</span></div>
+                <input type="range" id="heightRange" min="180" max="320" step="2" value="226"></div>
+              <div class="row"><span class="row-ic" style="background:#ff3b30"><svg class="ic"><use href="#ic-wave"/></svg></span>
+                <div class="row-main"><strong>输入震动</strong><span>按键触感（不支持的设备以音效 / 动效模拟）</span></div>
+                <button class="switch" id="swHaptic"><i></i></button></div>
+              <div class="row"><span class="row-ic" style="background:#5856d6"><svg class="ic"><use href="#ic-spark"/></svg></span>
+                <div class="row-main"><strong>按键音效</strong><span>轻微「嗒」声，跟随系统输入法习惯</span></div>
+                <button class="switch" id="swSound"><i></i></button></div>
+              <div class="row"><span class="row-ic" style="background:#8e8e93"><svg class="ic"><use href="#ic-moon"/></svg></span>
+                <div class="row-main"><strong>浅色外观</strong><span>关闭即使用参考图的深色磨砂按键配色</span></div>
+                <button class="switch" id="swLight"><i></i></button></div>
+            </div>
+
+            <div class="group-title">智能功能</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#007aff"><svg class="ic"><use href="#ic-translate"/></svg></span>
+                <div class="row-main"><strong>边写边译</strong><span>输入时实时翻译，可替换原文或插入译文</span></div>
+                <button class="switch" id="swTranslate"><i></i></button></div>
+              <div class="row"><div class="row-main"><strong>翻译方向</strong></div>
+                <div class="seg" id="segDirection" style="width:190px">
+                  <button class="on" data-dir="zh2en">中 → 英</button><button data-dir="en2zh">英 → 中</button><button data-dir="auto">自动</button></div></div>
+              <div class="row"><span class="row-ic" style="background:#34c759"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span>
+                <div class="row-main"><strong>收起键盘后保留预选词</strong><span>键盘隐藏时候选栏仍可点选上屏</span></div>
+                <button class="switch on" id="swCollapseCand"><i></i></button></div>
+            </div>
+
+            <div class="group-title">词库管理</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#af52de"><svg class="ic"><use href="#ic-book"/></svg></span>
+                <div class="row-main"><strong>用户词库</strong><span>导入的词条将在拼音候选中最优先显示</span></div></div>
+              <div class="stat-grid">
+                <div class="stat"><b id="statBuiltin">0</b><span>内置词条</span></div>
+                <div class="stat"><b id="statUser">0</b><span>导入词条</span></div>
+                <div class="stat"><b id="statClip">0</b><span>剪贴板</span></div>
+              </div>
+              <div class="row" style="display:block">
+                <textarea class="wb-area" id="wbArea" placeholder="粘贴词条，每行一条；支持「词语」或「词语 拼音 词频」格式，例如：&#10;边写边译 bianxiebianyi 99&#10;手写找字 shouxiezhaozi 88"></textarea>
+                <div class="wb-btns">
+                  <label class="file-label" for="wbFile"><svg class="ic"><use href="#ic-import"/></svg>选择文件</label>
+                  <input type="file" id="wbFile" accept=".txt,.json,.csv">
+                  <button id="wbImport">导入词条</button><button class="ghost" id="wbExport">导出</button><button class="ghost" id="wbClear">清空</button>
+                </div>
+                <div class="wb-preview" id="wbPreview">尚未导入词库</div>
+              </div>
+            </div>
+
+            <div class="group-title">关于</div>
+            <div class="group">
+              <div class="row"><span class="row-ic" style="background:#30b0c7"><svg class="ic"><use href="#ic-info"/></svg></span>
+                <div class="row-main"><strong>KeyFlow · iOS 磨砂键盘交互原型</strong><span>按键设计参照 iOS 深色键盘；拼音、翻译与手写识别均为本地演示引擎，无需联网。</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- __SCRIPT__ -->
+</body>
+</html>
