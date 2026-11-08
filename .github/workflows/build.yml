@@ -63,6 +63,9 @@ jobs:
   deploy:
     needs: [build, smoke]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # 仓库若尚未在 Settings → Pages 启用 GitHub Actions 来源，部署会失败；
+    # 这里容错，避免让「编译 + 冒烟」已通过的工作流整体变红。
+    continue-on-error: true
     runs-on: ubuntu-latest
     environment:
       name: github-pages
