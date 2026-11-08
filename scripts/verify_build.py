@@ -8,7 +8,8 @@ site = root / "_site/index.html"
 
 required_ids = [
     "editor", "viewKeys", "candidateBar", "pinyinBox", "candScroll",
-    "panelClipboard", "panelHandwrite", "hwCanvas", "btnGlobe", "btnMic",
+    "panelClipboard", "panelHandwrite", "hwCanvas", "btnLogo", "kbToolbar",
+    "tbTranslate", "tbHandwrite", "tbClipboard", "tbWordbook", "tbSettings", "tbCollapse",
     "funcMenu", "sheet", "heightRange", "wbArea", "translateBar", "grip",
 ]
 required_text = [

@@ -31,7 +31,7 @@
   const translateBar = $('#translateBar'), trText = $('#trText'), trBadge = $('#trBadge');
   const sheet = $('#sheet'), sheetMask = $('#sheetMask'), sheetScroll = $('.sheet-scroll');
   const funcMask = $('#funcMask'), funcMenu = $('#funcMenu'), toastEl = $('#toast');
-  let sel = { s: 0, e: 0 }, lastTranslation = '', micTimer = null;
+  let sel = { s: 0, e: 0 }, lastTranslation = '';
 
   function toast(msg) {
     toastEl.textContent = msg; toastEl.classList.add('show');
@@ -160,7 +160,7 @@
   function commit(word) { if (!word) return; insertText(word); state.pinyin = ''; setAssoc(word); renderCandidates(); }
   function commitRaw() { if (state.pinyin) { insertText(state.pinyin); state.pinyin = ''; renderCandidates(); } }
 
-  /* ---------- 键盘布局（参考图四行 + 底部地球/麦克风） ---------- */
+  /* ---------- 键盘布局（参考图四行 + 顶部工具栏） ---------- */
   const LAYOUTS = {
     letters: [
       'qwertyuiop'.split(''), 'asdfghjkl'.split(''),
@@ -178,6 +178,16 @@
       ['layout:letters:ABC', 'emoji', 'space', 'return']
     ]
   };
+  /* 字母键顶部的数字 / 符号上标（与参考图一致，纯视觉不影响点击） */
+  const SUP_MAP = {
+    q: '1', w: '2', e: '3', r: '4', t: '5', y: '6', u: '7', i: '8', o: '9', p: '0',
+    a: '`', s: '/', d: ':', f: ';', g: '(', h: ')', j: '~', k: '“', l: '”',
+    z: '@', x: '.', c: '#', v: '\\', b: '?', n: '!', m: '…'
+  };
+  function supHtml(k) {
+    const s = state.layout === 'letters' ? SUP_MAP[k] : null;
+    return s ? `<span class="sup">${esc(s)}</span>` : '';
+  }
   function keyHtml(k, rowIdx) {
     if (k.indexOf('layout:') === 0) {
       const p = k.split(':');
@@ -189,8 +199,9 @@
     if (k === 'emoji') return `<button class="key fn" data-fn="emoji" style="flex:1"><svg class="ic"><use href="#ic-emoji"/></svg></button>`;
     if (k === 'space') return `<button class="key space" data-fn="space">空格</button>`;
     if (k === 'return') return `<button class="key return" data-fn="return">搜索</button>`;
-    const label = (state.layout === 'letters' && state.shift) ? k.toUpperCase() : k;
-    return `<button class="key ${/[a-z]/.test(k) ? '' : 'special'}" data-k="${esc(k)}">${esc(label)}</button>`;
+    // 与 iOS 原生 / 参考图一致：字母键恒定显示为大写，shift 通过高亮键帽体现
+    const label = state.layout === 'letters' ? k.toUpperCase() : k;
+    return `<button class="key ${/[a-z]/.test(k) ? '' : 'special'}" data-k="${esc(k)}">${supHtml(k)}${esc(label)}</button>`;
   }
   function renderKeys() {
     viewKeys.innerHTML = LAYOUTS[state.layout].map((row, ri) => {
@@ -246,7 +257,7 @@
   }
   function setCollapsed(v) {
     state.collapsed = v; ime.classList.toggle('collapsed', v);
-    syncCandidateBar();
+    syncCandidateBar(); syncToolbar();
     if (v) toast('键盘已收起 · 预选词仍可点选');
   }
   function syncFuncMenu() {
@@ -256,6 +267,14 @@
   }
   function openFuncMenu() { funcMask.classList.add('show'); funcMenu.classList.add('show'); syncFuncMenu(); }
   function closeFuncMenu() { funcMask.classList.remove('show'); funcMenu.classList.remove('show'); }
+  /* 顶部工具栏状态：翻译高亮、收起 / 展开图标切换 */
+  function syncToolbar() {
+    $('#tbTranslate').classList.toggle('on', !!state.translate);
+    const b = $('#tbCollapse');
+    b.classList.toggle('on', !!state.collapsed);
+    b.querySelector('use').setAttribute('href', state.collapsed ? '#ic-chevron-up' : '#ic-chevron-down');
+    b.title = state.collapsed ? '展开键盘' : '收起键盘';
+  }
 
   /* ---------- 剪贴板 ---------- */
   function renderClips() {
@@ -324,7 +343,7 @@
   }
   function toggleTranslate(force) {
     state.translate = typeof force === 'boolean' ? force : !state.translate;
-    syncSwitch('swTranslate', state.translate); syncFuncMenu();
+    syncSwitch('swTranslate', state.translate); syncFuncMenu(); syncToolbar();
     updateTranslation(); saveSettings();
     toast(state.translate ? '边写边译已开启 · 译文实时显示在键盘上方' : '边写边译已关闭');
   }
@@ -461,27 +480,27 @@
 
   /* ---------- 事件绑定 ---------- */
   screen.addEventListener('pointerdown', e => {
-    const hit = e.target.closest('.key,.cand,.hw-char,.emoji-grid button,.clip-item,.func-item,.bottom-row button,.panel-tabs button,.cand-collapse');
+    const hit = e.target.closest('.key,.cand,.hw-char,.emoji-grid button,.clip-item,.func-item,.tb-btn,.tb-logo,.panel-tabs button,.cand-collapse');
     if (hit) { hit.classList.add('pressed'); setTimeout(() => hit.classList.remove('pressed'), 90); feedback(); }
   });
   screen.addEventListener('mousedown', e => {
     const t = e.target;
     if (t.closest('input,textarea,label,#wbFile')) return;
-    if (t.closest('.key,.cand,.cand-collapse,.hw-char,.emoji-grid button,.clip-item,.clip-add button,.hw-btn,.tr-acts button,.collapse-tip button,.func-item,.bottom-row button,.panel-tabs button')) {
+    if (t.closest('.key,.cand,.cand-collapse,.hw-char,.emoji-grid button,.clip-item,.clip-add button,.hw-btn,.tr-acts button,.collapse-tip button,.func-item,.tb-btn,.tb-logo,.panel-tabs button')) {
       syncSel(); e.preventDefault();
     }
   });
 
   ime.addEventListener('click', e => {
     const t = e.target;
-    if (t.closest('#btnGlobe')) return openFuncMenu();
-    if (t.closest('#btnMic')) {
-      const b = $('#btnMic');
-      if (micTimer) { clearTimeout(micTimer); micTimer = null; b.classList.remove('mic-listening'); toast('已停止聆听'); return; }
-      b.classList.add('mic-listening'); toast('正在聆听…（语音输入演示）');
-      micTimer = setTimeout(() => { b.classList.remove('mic-listening'); micTimer = null; insertText('语音输入演示'); toast('已插入识别结果（演示）'); }, 1400);
-      return;
-    }
+    // 顶部工具栏：左侧 logo 打开完整菜单，右侧圆钮直达各功能
+    if (t.closest('#btnLogo')) return openFuncMenu();
+    if (t.closest('#tbTranslate')) return toggleTranslate();
+    if (t.closest('#tbHandwrite')) return openView('handwrite');
+    if (t.closest('#tbClipboard')) return openView('clipboard');
+    if (t.closest('#tbWordbook')) return openSheet('wordbook');
+    if (t.closest('#tbSettings')) return openSheet('');
+    if (t.closest('#tbCollapse')) return setCollapsed(!state.collapsed);
     if (t.closest('#btnCollapse')) return setCollapsed(true);
     if (t.closest('#btnExpand')) return setCollapsed(false);
     if (t.closest('#trReplace')) { if (!lastTranslation) return toast('暂无译文'); editor.value = lastTranslation; sel.s = sel.e = editor.value.length; onEditorChange(); return toast('已用译文替换原文'); }
@@ -593,7 +612,7 @@
   const SW_IDS = { haptic: 'swHaptic', sound: 'swSound', light: 'swLight', translate: 'swTranslate', keepCand: 'swCollapseCand' };
   Object.keys(SW_IDS).forEach(k => syncSwitch(SW_IDS[k], state[k]));
   $$('#segDirection button').forEach(b => b.classList.toggle('on', b.dataset.dir === state.direction));
-  renderKeys(); renderCandidates(); renderClips(); renderEmoji(); updateStats(); onEditorChange(); syncFuncMenu();
+  renderKeys(); renderCandidates(); renderClips(); renderEmoji(); updateStats(); onEditorChange(); syncFuncMenu(); syncToolbar();
   $('#docMeta').textContent = '今天 ' + new Date().getHours() + ':' + two(new Date().getMinutes());
   tickClock(); fitDevice(); setTimeout(initCanvas, 60);
 })();

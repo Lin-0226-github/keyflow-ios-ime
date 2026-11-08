@@ -151,19 +151,30 @@ body {
 .screen.light .key.shift-on { background: #fff; color: #1c1c1e; }
 .key-row3 { padding: 0 1px; }
 
-/* 底部地球 / 麦克风行（参考图） */
-.bottom-row { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-.bottom-row button { border: 0; background: none; color: var(--ink); opacity: .92; cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center; }
-.bottom-row button:active { background: rgba(255,255,255,.12); }
-.bottom-row .ic { width: 25px; height: 25px; }
-.bottom-row .mic-listening { color: #ff453a; animation: pulse 1s infinite; }
-@keyframes pulse { 50% { opacity: .4; } }
+/* 顶部工具栏：左侧品牌 logo + 右侧一排圆形功能按钮（参考图） */
+.kb-toolbar { height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; }
+.tb-actions { display: flex; align-items: center; gap: 6px; }
+.tb-logo, .tb-btn { flex-shrink: 0; width: 32px; height: 32px; border: 0; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; user-select: none;
+  background: rgba(255,255,255,.20); color: rgba(255,255,255,.8);
+  transition: background .12s, transform .08s; }
+.tb-logo .ic { width: 21px; height: 21px; color: #28c582; }
+.tb-btn .ic { width: 17px; height: 17px; }
+.tb-logo:active, .tb-btn:active, .tb-logo.pressed, .tb-btn.pressed { background: rgba(255,255,255,.38); transform: scale(.9); }
+.tb-btn.on { background: rgba(10,132,255,.7); color: #fff; }
+.screen.light .tb-logo, .screen.light .tb-btn { background: rgba(0,0,0,.09); color: #3c3c43; }
+.screen.light .tb-logo .ic { color: #1faf70; }
+.screen.light .tb-btn.on { background: #0a84ff; color: #fff; }
+
+/* 字母键顶部的数字 / 符号上标（参考图） */
+.key .sup { position: absolute; top: 3px; left: 0; right: 0; text-align: center; font-size: 9.5px; line-height: 1;
+  font-weight: 500; opacity: .62; pointer-events: none; }
+
 .home-bar { height: 14px; flex-shrink: 0; display: grid; place-items: center; }
 .home-bar i { width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; }
 
 .ime.collapsed .keyboard-body { height: 0 !important; }
 .ime.collapsed .grip { display: none; }
-.ime.collapsed .bottom-row { display: none; }
 
 /* ---------- 功能菜单（由地球键唤出） ---------- */
 .func-mask { position: absolute; inset: 0; z-index: 70; background: rgba(0,0,0,.38); display: none; }
@@ -184,9 +195,10 @@ body {
 .func-hint { margin: 11px 4px 0; font-size: 10.5px; line-height: 1.5; opacity: .55; }
 
 /* ---------- 面板：剪贴板 / 手写 / 表情 ---------- */
-.panel { position: absolute; left: 0; right: 0; top: 12px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
-/* 面板模式自动加高键盘区，给手写画布 / 剪贴板列表更多空间（不改动用户设置的高度） */
-.ime.panel-mode .keyboard-body { height: 292px !important; }
+/* 从顶部工具栏下方开始，保证右上角功能圆钮在面板状态下依然可见可点 */
+.panel { position: absolute; left: 0; right: 0; top: 58px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
+/* 面板模式自动加高键盘区，抵消工具栏占位，给手写画布 / 剪贴板列表足够空间 */
+.ime.panel-mode .keyboard-body { height: 338px !important; }
 .panel.show { display: flex; }
 .panel.panel-inline { position: relative; inset: auto; top: auto; right: auto; bottom: auto; left: auto; z-index: auto; flex: 1; min-height: 0; background: transparent; }
 .panel-head { height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--sep); }

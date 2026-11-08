@@ -22,7 +22,10 @@ with sync_playwright() as p:
     ok("键盘 32 个按键", page.locator("#viewKeys .key").count() == 32, page.locator("#viewKeys .key").count())
     ok("默认深色磨砂按键", "light" not in (page.locator("#screen").get_attribute("class") or ""))
     ok("候选栏初始隐藏（贴近参考图）", not page.locator("#candidateBar").is_visible())
-    ok("底行地球/麦克风存在", page.locator("#btnGlobe").count() == 1 and page.locator("#btnMic").count() == 1)
+    ok("底部地球/麦克风已移除", page.locator("#btnGlobe").count() == 0 and page.locator("#btnMic").count() == 0)
+    ok("顶部工具栏 6 个功能圆钮", page.locator("#kbToolbar .tb-btn").count() == 6, page.locator("#kbToolbar .tb-btn").count())
+    ok("左侧绿色 logo 存在", page.locator("#btnLogo").count() == 1)
+    ok("字母键带数字/符号上标", page.locator("#viewKeys .key .sup").count() == 26, page.locator("#viewKeys .key .sup").count())
     ok("第四行 123/表情/空格/搜索", page.locator('#viewKeys .key[data-v="numbers"]').count() == 1
        and page.locator('#viewKeys .key[data-fn="emoji"]').count() == 1
        and page.locator('#viewKeys .key[data-fn="return"]').inner_text().strip() == "搜索")
@@ -38,7 +41,7 @@ with sync_playwright() as p:
     ok("候选词上屏", "你好" in page.locator("#editor").input_value())
 
     # 地球键功能菜单
-    page.locator("#btnGlobe").click()
+    page.locator("#btnLogo").click()
     ok("功能菜单打开", page.locator("#funcMenu").is_visible())
     ok("菜单含 8 项功能", page.locator("#funcMenu .func-item").count() == 8)
     page.locator('#funcMenu [data-view="clipboard"]').click()
@@ -48,13 +51,13 @@ with sync_playwright() as p:
     ok("剪贴板可粘贴", page.locator("#editor").input_value() != before)
     page.locator("#panelClipboard .panel-head [data-view=keys]").click()
 
-    page.locator("#btnGlobe").click()
+    page.locator("#btnLogo").click()
     page.locator("#fmTranslate").click()
     ok("边写边译开启", "on" in (page.locator("#translateBar").get_attribute("class") or ""))
     ok("译文非空", len(page.locator("#trText").inner_text()) > 3)
 
     # 收起键盘预选词
-    page.locator("#btnGlobe").click()
+    page.locator("#btnLogo").click()
     page.locator("#fmCollapse").click()
     ok("键盘已收起", "collapsed" in (page.locator("#ime").get_attribute("class") or ""))
     ok("收起后候选栏仍显示预选词", page.locator("#candidateBar").is_visible())
@@ -63,7 +66,7 @@ with sync_playwright() as p:
     page.locator("#btnExpand").click()
 
     # 手写
-    page.locator("#btnGlobe").click()
+    page.locator("#btnLogo").click()
     page.locator('#funcMenu [data-view="handwrite"]').click()
     page.wait_for_timeout(250)
     box = page.locator("#hwCanvas").bounding_box()
@@ -84,7 +87,7 @@ with sync_playwright() as p:
     page.locator('#viewKeys .key[data-v="letters"]').click()
 
     # 设置 + 高度 + 词库
-    page.locator("#btnGlobe").click()
+    page.locator("#btnLogo").click()
     page.locator('#funcMenu [data-open="settings"]').click()
     page.wait_for_timeout(350)
     ok("设置面板打开", page.locator("#sheet").is_visible())
@@ -105,11 +108,19 @@ with sync_playwright() as p:
     for _ in range(11):
         page.locator('#viewKeys .key[data-fn="delete"]').click()
 
-    # 麦克风演示
-    v0 = page.locator("#editor").input_value()
-    page.locator("#btnMic").click()
-    page.wait_for_timeout(1700)
-    ok("语音输入演示", page.locator("#editor").input_value() != v0)
+    # 顶部工具栏直达功能
+    page.locator("#tbWordbook").click()
+    page.wait_for_timeout(300)
+    ok("工具栏词库按钮直达设置", page.locator("#sheet").is_visible())
+    page.locator("#sheetDone").click(); page.wait_for_timeout(300)
+    page.locator("#tbTranslate").click()
+    ok("工具栏翻译按钮可关闭译文", "on" not in (page.locator("#translateBar").get_attribute("class") or ""))
+    page.locator("#tbTranslate").click()
+    ok("工具栏翻译按钮可开启译文", "on" in (page.locator("#translateBar").get_attribute("class") or ""))
+    page.locator("#tbCollapse").click()
+    ok("工具栏可收起键盘", "collapsed" in (page.locator("#ime").get_attribute("class") or ""))
+    page.locator("#tbCollapse").click()
+    ok("同一按钮可展开键盘", "collapsed" not in (page.locator("#ime").get_attribute("class") or ""))
 
     browser.close()
 

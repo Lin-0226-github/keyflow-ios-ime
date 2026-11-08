@@ -158,19 +158,30 @@ body {
 .screen.light .key.shift-on { background: #fff; color: #1c1c1e; }
 .key-row3 { padding: 0 1px; }
 
-/* 底部地球 / 麦克风行（参考图） */
-.bottom-row { height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-.bottom-row button { border: 0; background: none; color: var(--ink); opacity: .92; cursor: pointer; padding: 6px; border-radius: 8px; display: grid; place-items: center; }
-.bottom-row button:active { background: rgba(255,255,255,.12); }
-.bottom-row .ic { width: 25px; height: 25px; }
-.bottom-row .mic-listening { color: #ff453a; animation: pulse 1s infinite; }
-@keyframes pulse { 50% { opacity: .4; } }
+/* 顶部工具栏：左侧品牌 logo + 右侧一排圆形功能按钮（参考图） */
+.kb-toolbar { height: 46px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; }
+.tb-actions { display: flex; align-items: center; gap: 6px; }
+.tb-logo, .tb-btn { flex-shrink: 0; width: 32px; height: 32px; border: 0; padding: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer; user-select: none;
+  background: rgba(255,255,255,.20); color: rgba(255,255,255,.8);
+  transition: background .12s, transform .08s; }
+.tb-logo .ic { width: 21px; height: 21px; color: #28c582; }
+.tb-btn .ic { width: 17px; height: 17px; }
+.tb-logo:active, .tb-btn:active, .tb-logo.pressed, .tb-btn.pressed { background: rgba(255,255,255,.38); transform: scale(.9); }
+.tb-btn.on { background: rgba(10,132,255,.7); color: #fff; }
+.screen.light .tb-logo, .screen.light .tb-btn { background: rgba(0,0,0,.09); color: #3c3c43; }
+.screen.light .tb-logo .ic { color: #1faf70; }
+.screen.light .tb-btn.on { background: #0a84ff; color: #fff; }
+
+/* 字母键顶部的数字 / 符号上标（参考图） */
+.key .sup { position: absolute; top: 3px; left: 0; right: 0; text-align: center; font-size: 9.5px; line-height: 1;
+  font-weight: 500; opacity: .62; pointer-events: none; }
+
 .home-bar { height: 14px; flex-shrink: 0; display: grid; place-items: center; }
 .home-bar i { width: 134px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .85; }
 
 .ime.collapsed .keyboard-body { height: 0 !important; }
 .ime.collapsed .grip { display: none; }
-.ime.collapsed .bottom-row { display: none; }
 
 /* ---------- 功能菜单（由地球键唤出） ---------- */
 .func-mask { position: absolute; inset: 0; z-index: 70; background: rgba(0,0,0,.38); display: none; }
@@ -191,9 +202,10 @@ body {
 .func-hint { margin: 11px 4px 0; font-size: 10.5px; line-height: 1.5; opacity: .55; }
 
 /* ---------- 面板：剪贴板 / 手写 / 表情 ---------- */
-.panel { position: absolute; left: 0; right: 0; top: 12px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
-/* 面板模式自动加高键盘区，给手写画布 / 剪贴板列表更多空间（不改动用户设置的高度） */
-.ime.panel-mode .keyboard-body { height: 292px !important; }
+/* 从顶部工具栏下方开始，保证右上角功能圆钮在面板状态下依然可见可点 */
+.panel { position: absolute; left: 0; right: 0; top: 58px; bottom: 14px; z-index: 20; display: none; flex-direction: column; background: var(--bar); }
+/* 面板模式自动加高键盘区，抵消工具栏占位，给手写画布 / 剪贴板列表足够空间 */
+.ime.panel-mode .keyboard-body { height: 338px !important; }
 .panel.show { display: flex; }
 .panel.panel-inline { position: relative; inset: auto; top: auto; right: auto; bottom: auto; left: auto; z-index: auto; flex: 1; min-height: 0; background: transparent; }
 .panel-head { height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--sep); }
@@ -326,12 +338,15 @@ body.native .wallpaper { border-radius: 0; }
   <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
   <symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
   <symbol id="ic-lang" viewBox="0 0 24 24"><path d="M3 6h10M8 3v3M10 6c0 4-3 7-7 8M6 10c1 2 3 4 5 5"/><path d="M13 20l4-10 4 10M14.5 17h5"/></symbol>
+  <symbol id="ic-chevron-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="ic-radiate" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8"/></symbol>
+  <symbol id="ic-kflogo" viewBox="0 0 32 32"><path d="M10 25V7h8a6 6 0 0 1 0 12h-6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 19l7 7" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/></symbol>
 </defs></svg>
 
 <div class="page">
   <aside class="showcase">
     <div class="brand"><div class="brand-logo">K</div><div><h1>KeyFlow 输入法</h1><p>iOS Frosted Keyboard</p></div></div>
-    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距、底部地球 / 麦克风。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
+    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距，功能全部收进键盘<b>右上角的一排圆形按钮</b>。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
     <div class="feat-list" id="featList">
       <button class="feat" data-act="clipboard"><span class="feat-ic"><svg class="ic"><use href="#ic-clipboard"/></svg></span><span class="feat-tx"><strong>剪贴板</strong><span>历史条目、一键粘贴、复制与清空</span></span><span class="feat-arrow">›</span></button>
       <button class="feat" data-act="collapse"><span class="feat-ic"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span><span class="feat-tx"><strong>收起键盘预选词</strong><span>键盘收起后候选词仍可点选上屏</span></span><span class="feat-arrow">›</span></button>
@@ -341,7 +356,7 @@ body.native .wallpaper { border-radius: 0; }
       <button class="feat" data-act="haptic"><span class="feat-ic"><svg class="ic"><use href="#ic-wave"/></svg></span><span class="feat-tx"><strong>输入震动</strong><span>按键触感、音效与按压动效反馈</span></span><span class="feat-arrow">›</span></button>
       <button class="feat" data-act="wordbook"><span class="feat-ic"><svg class="ic"><use href="#ic-book"/></svg></span><span class="feat-tx"><strong>词库导入</strong><span>导入 TXT / JSON 词库，候选优先</span></span><span class="feat-arrow">›</span></button>
     </div>
-    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左下角地球键打开功能菜单</div>
+    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左上角绿色 logo 打开完整功能菜单</div>
   </aside>
 
   <div class="device-wrap" id="deviceWrap">
@@ -372,6 +387,19 @@ body.native .wallpaper { border-radius: 0; }
         <!-- ========== 输入法 ========== -->
         <div class="ime" id="ime">
           <div class="grip" id="grip" title="上下拖动调节键盘高度"><span class="grip-bar"></span></div>
+
+          <!-- 顶部工具栏：左侧品牌 logo，右侧一排圆形功能按钮（参考图） -->
+          <div class="kb-toolbar" id="kbToolbar">
+            <button class="tb-logo" id="btnLogo" title="KeyFlow · 全部功能"><svg class="ic"><use href="#ic-kflogo"/></svg></button>
+            <div class="tb-actions">
+              <button class="tb-btn" id="tbTranslate" title="边写边译"><svg class="ic"><use href="#ic-translate"/></svg></button>
+              <button class="tb-btn" id="tbHandwrite" title="手写找字"><svg class="ic"><use href="#ic-radiate"/></svg></button>
+              <button class="tb-btn" id="tbClipboard" title="剪贴板"><svg class="ic"><use href="#ic-clipboard"/></svg></button>
+              <button class="tb-btn" id="tbWordbook" title="词库导入"><svg class="ic"><use href="#ic-book"/></svg></button>
+              <button class="tb-btn" id="tbSettings" title="键盘设置"><svg class="ic"><use href="#ic-settings"/></svg></button>
+              <button class="tb-btn" id="tbCollapse" title="收起键盘"><svg class="ic"><use href="#ic-chevron-down"/></svg></button>
+            </div>
+          </div>
 
           <div class="translate-bar" id="translateBar">
             <span class="tr-badge" id="trBadge">中→英</span>
@@ -434,11 +462,6 @@ body.native .wallpaper { border-radius: 0; }
             </div>
           </div>
 
-          <!-- 底部地球 / 麦克风（参考图） -->
-          <div class="bottom-row">
-            <button id="btnGlobe" title="功能菜单 / 切换键盘"><svg class="ic"><use href="#ic-globe"/></svg></button>
-            <button id="btnMic" title="语音输入（演示）"><svg class="ic"><use href="#ic-mic"/></svg></button>
-          </div>
           <div class="home-bar"><i></i></div>
         </div>
 
@@ -1269,7 +1292,7 @@ yingwenmoshi 英文模式
   const translateBar = $('#translateBar'), trText = $('#trText'), trBadge = $('#trBadge');
   const sheet = $('#sheet'), sheetMask = $('#sheetMask'), sheetScroll = $('.sheet-scroll');
   const funcMask = $('#funcMask'), funcMenu = $('#funcMenu'), toastEl = $('#toast');
-  let sel = { s: 0, e: 0 }, lastTranslation = '', micTimer = null;
+  let sel = { s: 0, e: 0 }, lastTranslation = '';
 
   function toast(msg) {
     toastEl.textContent = msg; toastEl.classList.add('show');
@@ -1398,7 +1421,7 @@ yingwenmoshi 英文模式
   function commit(word) { if (!word) return; insertText(word); state.pinyin = ''; setAssoc(word); renderCandidates(); }
   function commitRaw() { if (state.pinyin) { insertText(state.pinyin); state.pinyin = ''; renderCandidates(); } }
 
-  /* ---------- 键盘布局（参考图四行 + 底部地球/麦克风） ---------- */
+  /* ---------- 键盘布局（参考图四行 + 顶部工具栏） ---------- */
   const LAYOUTS = {
     letters: [
       'qwertyuiop'.split(''), 'asdfghjkl'.split(''),
@@ -1416,6 +1439,16 @@ yingwenmoshi 英文模式
       ['layout:letters:ABC', 'emoji', 'space', 'return']
     ]
   };
+  /* 字母键顶部的数字 / 符号上标（与参考图一致，纯视觉不影响点击） */
+  const SUP_MAP = {
+    q: '1', w: '2', e: '3', r: '4', t: '5', y: '6', u: '7', i: '8', o: '9', p: '0',
+    a: '`', s: '/', d: ':', f: ';', g: '(', h: ')', j: '~', k: '“', l: '”',
+    z: '@', x: '.', c: '#', v: '\\', b: '?', n: '!', m: '…'
+  };
+  function supHtml(k) {
+    const s = state.layout === 'letters' ? SUP_MAP[k] : null;
+    return s ? `<span class="sup">${esc(s)}</span>` : '';
+  }
   function keyHtml(k, rowIdx) {
     if (k.indexOf('layout:') === 0) {
       const p = k.split(':');
@@ -1427,8 +1460,9 @@ yingwenmoshi 英文模式
     if (k === 'emoji') return `<button class="key fn" data-fn="emoji" style="flex:1"><svg class="ic"><use href="#ic-emoji"/></svg></button>`;
     if (k === 'space') return `<button class="key space" data-fn="space">空格</button>`;
     if (k === 'return') return `<button class="key return" data-fn="return">搜索</button>`;
-    const label = (state.layout === 'letters' && state.shift) ? k.toUpperCase() : k;
-    return `<button class="key ${/[a-z]/.test(k) ? '' : 'special'}" data-k="${esc(k)}">${esc(label)}</button>`;
+    // 与 iOS 原生 / 参考图一致：字母键恒定显示为大写，shift 通过高亮键帽体现
+    const label = state.layout === 'letters' ? k.toUpperCase() : k;
+    return `<button class="key ${/[a-z]/.test(k) ? '' : 'special'}" data-k="${esc(k)}">${supHtml(k)}${esc(label)}</button>`;
   }
   function renderKeys() {
     viewKeys.innerHTML = LAYOUTS[state.layout].map((row, ri) => {
@@ -1484,7 +1518,7 @@ yingwenmoshi 英文模式
   }
   function setCollapsed(v) {
     state.collapsed = v; ime.classList.toggle('collapsed', v);
-    syncCandidateBar();
+    syncCandidateBar(); syncToolbar();
     if (v) toast('键盘已收起 · 预选词仍可点选');
   }
   function syncFuncMenu() {
@@ -1494,6 +1528,14 @@ yingwenmoshi 英文模式
   }
   function openFuncMenu() { funcMask.classList.add('show'); funcMenu.classList.add('show'); syncFuncMenu(); }
   function closeFuncMenu() { funcMask.classList.remove('show'); funcMenu.classList.remove('show'); }
+  /* 顶部工具栏状态：翻译高亮、收起 / 展开图标切换 */
+  function syncToolbar() {
+    $('#tbTranslate').classList.toggle('on', !!state.translate);
+    const b = $('#tbCollapse');
+    b.classList.toggle('on', !!state.collapsed);
+    b.querySelector('use').setAttribute('href', state.collapsed ? '#ic-chevron-up' : '#ic-chevron-down');
+    b.title = state.collapsed ? '展开键盘' : '收起键盘';
+  }
 
   /* ---------- 剪贴板 ---------- */
   function renderClips() {
@@ -1562,7 +1604,7 @@ yingwenmoshi 英文模式
   }
   function toggleTranslate(force) {
     state.translate = typeof force === 'boolean' ? force : !state.translate;
-    syncSwitch('swTranslate', state.translate); syncFuncMenu();
+    syncSwitch('swTranslate', state.translate); syncFuncMenu(); syncToolbar();
     updateTranslation(); saveSettings();
     toast(state.translate ? '边写边译已开启 · 译文实时显示在键盘上方' : '边写边译已关闭');
   }
@@ -1699,27 +1741,27 @@ yingwenmoshi 英文模式
 
   /* ---------- 事件绑定 ---------- */
   screen.addEventListener('pointerdown', e => {
-    const hit = e.target.closest('.key,.cand,.hw-char,.emoji-grid button,.clip-item,.func-item,.bottom-row button,.panel-tabs button,.cand-collapse');
+    const hit = e.target.closest('.key,.cand,.hw-char,.emoji-grid button,.clip-item,.func-item,.tb-btn,.tb-logo,.panel-tabs button,.cand-collapse');
     if (hit) { hit.classList.add('pressed'); setTimeout(() => hit.classList.remove('pressed'), 90); feedback(); }
   });
   screen.addEventListener('mousedown', e => {
     const t = e.target;
     if (t.closest('input,textarea,label,#wbFile')) return;
-    if (t.closest('.key,.cand,.cand-collapse,.hw-char,.emoji-grid button,.clip-item,.clip-add button,.hw-btn,.tr-acts button,.collapse-tip button,.func-item,.bottom-row button,.panel-tabs button')) {
+    if (t.closest('.key,.cand,.cand-collapse,.hw-char,.emoji-grid button,.clip-item,.clip-add button,.hw-btn,.tr-acts button,.collapse-tip button,.func-item,.tb-btn,.tb-logo,.panel-tabs button')) {
       syncSel(); e.preventDefault();
     }
   });
 
   ime.addEventListener('click', e => {
     const t = e.target;
-    if (t.closest('#btnGlobe')) return openFuncMenu();
-    if (t.closest('#btnMic')) {
-      const b = $('#btnMic');
-      if (micTimer) { clearTimeout(micTimer); micTimer = null; b.classList.remove('mic-listening'); toast('已停止聆听'); return; }
-      b.classList.add('mic-listening'); toast('正在聆听…（语音输入演示）');
-      micTimer = setTimeout(() => { b.classList.remove('mic-listening'); micTimer = null; insertText('语音输入演示'); toast('已插入识别结果（演示）'); }, 1400);
-      return;
-    }
+    // 顶部工具栏：左侧 logo 打开完整菜单，右侧圆钮直达各功能
+    if (t.closest('#btnLogo')) return openFuncMenu();
+    if (t.closest('#tbTranslate')) return toggleTranslate();
+    if (t.closest('#tbHandwrite')) return openView('handwrite');
+    if (t.closest('#tbClipboard')) return openView('clipboard');
+    if (t.closest('#tbWordbook')) return openSheet('wordbook');
+    if (t.closest('#tbSettings')) return openSheet('');
+    if (t.closest('#tbCollapse')) return setCollapsed(!state.collapsed);
     if (t.closest('#btnCollapse')) return setCollapsed(true);
     if (t.closest('#btnExpand')) return setCollapsed(false);
     if (t.closest('#trReplace')) { if (!lastTranslation) return toast('暂无译文'); editor.value = lastTranslation; sel.s = sel.e = editor.value.length; onEditorChange(); return toast('已用译文替换原文'); }
@@ -1831,7 +1873,7 @@ yingwenmoshi 英文模式
   const SW_IDS = { haptic: 'swHaptic', sound: 'swSound', light: 'swLight', translate: 'swTranslate', keepCand: 'swCollapseCand' };
   Object.keys(SW_IDS).forEach(k => syncSwitch(SW_IDS[k], state[k]));
   $$('#segDirection button').forEach(b => b.classList.toggle('on', b.dataset.dir === state.direction));
-  renderKeys(); renderCandidates(); renderClips(); renderEmoji(); updateStats(); onEditorChange(); syncFuncMenu();
+  renderKeys(); renderCandidates(); renderClips(); renderEmoji(); updateStats(); onEditorChange(); syncFuncMenu(); syncToolbar();
   $('#docMeta').textContent = '今天 ' + new Date().getHours() + ':' + two(new Date().getMinutes());
   tickClock(); fitDevice(); setTimeout(initCanvas, 60);
 })();

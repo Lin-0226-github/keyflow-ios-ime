@@ -33,12 +33,15 @@
   <symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
   <symbol id="ic-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></symbol>
   <symbol id="ic-lang" viewBox="0 0 24 24"><path d="M3 6h10M8 3v3M10 6c0 4-3 7-7 8M6 10c1 2 3 4 5 5"/><path d="M13 20l4-10 4 10M14.5 17h5"/></symbol>
+  <symbol id="ic-chevron-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></symbol>
+  <symbol id="ic-radiate" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8"/></symbol>
+  <symbol id="ic-kflogo" viewBox="0 0 32 32"><path d="M10 25V7h8a6 6 0 0 1 0 12h-6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 19l7 7" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/></symbol>
 </defs></svg>
 
 <div class="page">
   <aside class="showcase">
     <div class="brand"><div class="brand-logo">K</div><div><h1>KeyFlow 输入法</h1><p>iOS Frosted Keyboard</p></div></div>
-    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距、底部地球 / 麦克风。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
+    <div class="tagline">按参考图重做的 <b>深色磨砂半透明按键</b>：四行布局、圆角大间距，功能全部收进键盘<b>右上角的一排圆形按钮</b>。点击左侧功能卡片，可直接在模拟器中打开对应功能。</div>
     <div class="feat-list" id="featList">
       <button class="feat" data-act="clipboard"><span class="feat-ic"><svg class="ic"><use href="#ic-clipboard"/></svg></span><span class="feat-tx"><strong>剪贴板</strong><span>历史条目、一键粘贴、复制与清空</span></span><span class="feat-arrow">›</span></button>
       <button class="feat" data-act="collapse"><span class="feat-ic"><svg class="ic"><use href="#ic-keyboard-down"/></svg></span><span class="feat-tx"><strong>收起键盘预选词</strong><span>键盘收起后候选词仍可点选上屏</span></span><span class="feat-arrow">›</span></button>
@@ -48,7 +51,7 @@
       <button class="feat" data-act="haptic"><span class="feat-ic"><svg class="ic"><use href="#ic-wave"/></svg></span><span class="feat-tx"><strong>输入震动</strong><span>按键触感、音效与按压动效反馈</span></span><span class="feat-arrow">›</span></button>
       <button class="feat" data-act="wordbook"><span class="feat-ic"><svg class="ic"><use href="#ic-book"/></svg></span><span class="feat-tx"><strong>词库导入</strong><span>导入 TXT / JSON 词库，候选优先</span></span><span class="feat-arrow">›</span></button>
     </div>
-    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左下角地球键打开功能菜单</div>
+    <div class="foot-hint">键盘输入拼音试试：<kbd>nihao</kbd> <kbd>shurufa</kbd> <kbd>bianxiebianyi</kbd><br>点候选词上屏 · 空格上屏首选 · 左上角绿色 logo 打开完整功能菜单</div>
   </aside>
 
   <div class="device-wrap" id="deviceWrap">
@@ -79,6 +82,19 @@
         <!-- ========== 输入法 ========== -->
         <div class="ime" id="ime">
           <div class="grip" id="grip" title="上下拖动调节键盘高度"><span class="grip-bar"></span></div>
+
+          <!-- 顶部工具栏：左侧品牌 logo，右侧一排圆形功能按钮（参考图） -->
+          <div class="kb-toolbar" id="kbToolbar">
+            <button class="tb-logo" id="btnLogo" title="KeyFlow · 全部功能"><svg class="ic"><use href="#ic-kflogo"/></svg></button>
+            <div class="tb-actions">
+              <button class="tb-btn" id="tbTranslate" title="边写边译"><svg class="ic"><use href="#ic-translate"/></svg></button>
+              <button class="tb-btn" id="tbHandwrite" title="手写找字"><svg class="ic"><use href="#ic-radiate"/></svg></button>
+              <button class="tb-btn" id="tbClipboard" title="剪贴板"><svg class="ic"><use href="#ic-clipboard"/></svg></button>
+              <button class="tb-btn" id="tbWordbook" title="词库导入"><svg class="ic"><use href="#ic-book"/></svg></button>
+              <button class="tb-btn" id="tbSettings" title="键盘设置"><svg class="ic"><use href="#ic-settings"/></svg></button>
+              <button class="tb-btn" id="tbCollapse" title="收起键盘"><svg class="ic"><use href="#ic-chevron-down"/></svg></button>
+            </div>
+          </div>
 
           <div class="translate-bar" id="translateBar">
             <span class="tr-badge" id="trBadge">中→英</span>
@@ -141,11 +157,6 @@
             </div>
           </div>
 
-          <!-- 底部地球 / 麦克风（参考图） -->
-          <div class="bottom-row">
-            <button id="btnGlobe" title="功能菜单 / 切换键盘"><svg class="ic"><use href="#ic-globe"/></svg></button>
-            <button id="btnMic" title="语音输入（演示）"><svg class="ic"><use href="#ic-mic"/></svg></button>
-          </div>
           <div class="home-bar"><i></i></div>
         </div>
 
