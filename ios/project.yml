@@ -6,7 +6,7 @@ options:
   bundleIdPrefix: com.keyflow
   deploymentTarget:
     iOS: "14.0"
-  # 锁定 Xcode 14 工程格式，兼容 macOS-14 runner 上的 Xcode 15/16
+  # 锁定 Xcode 14 工程格式，兼容 macOS-15 runner 上的 Xcode 16
   objectVersion: 56
   createIntermediateGroups: true
   groupSortPosition: top

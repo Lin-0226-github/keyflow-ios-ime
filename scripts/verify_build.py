@@ -44,6 +44,8 @@ for f in ios_files:
 ipa_yml = (root / ".github/workflows/build-ipa.yml").read_text(encoding="utf-8")
 check("IPA 工作流使用 macOS + xcodebuild", "macos-15" in ipa_yml and "xcodebuild" in ipa_yml and "KeyFlow-unsigned.ipa" in ipa_yml)
 check("工程名 KeyFlow", "name: KeyFlow" in (root / "ios/project.yml").read_text(encoding="utf-8"))
+icon_dir = root / "ios/App/Assets.xcassets/AppIcon.appiconset"
+check("AppIcon 图标集齐全", (icon_dir / "Contents.json").exists() and (icon_dir / "icon-1024.png").exists())
 check("真机沉浸模式注入", "KeyFlowNative" in (root / "ios/App/WebViewController.swift").read_text(encoding="utf-8")
       and "body.native" in html)
 
