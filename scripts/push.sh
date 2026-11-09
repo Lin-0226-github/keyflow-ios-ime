@@ -16,6 +16,14 @@ BRANCH="${2:-main}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# 交付包是纯源码快照（不含 .git）时，自动初始化一个本地仓库
+if [ ! -d .git ]; then
+  git init -q
+  git add -A
+  git -c user.name="KeyFlow" -c user.email="keyflow@local" commit -qm "KeyFlow · iOS 磨砂键盘输入法工程"
+fi
+
+# -f：本地历史与线上不一致或仓库刚创建时，也能一次推送对齐
 git push -f "https://oauth2:${TOKEN}@github.com/${REPO}.git" "HEAD:refs/heads/${BRANCH}"
 
 echo "✓ 已推送到 ${REPO} 的 ${BRANCH} 分支"
