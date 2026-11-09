@@ -42,7 +42,7 @@ ios_files = [
 for f in ios_files:
     check(f"iOS 工程 {f}", (root / f).exists())
 ipa_yml = (root / ".github/workflows/build-ipa.yml").read_text(encoding="utf-8")
-check("IPA 工作流使用 macOS + xcodebuild", "macos-14" in ipa_yml and "xcodebuild" in ipa_yml and "KeyFlow-unsigned.ipa" in ipa_yml)
+check("IPA 工作流使用 macOS + xcodebuild", "macos-15" in ipa_yml and "xcodebuild" in ipa_yml and "KeyFlow-unsigned.ipa" in ipa_yml)
 check("工程名 KeyFlow", "name: KeyFlow" in (root / "ios/project.yml").read_text(encoding="utf-8"))
 check("真机沉浸模式注入", "KeyFlowNative" in (root / "ios/App/WebViewController.swift").read_text(encoding="utf-8")
       and "body.native" in html)

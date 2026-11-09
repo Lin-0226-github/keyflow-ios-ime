@@ -22,7 +22,7 @@ permissions:
 jobs:
   build:
     name: Build signed IPA
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 45
     env:
       CERT_B64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
